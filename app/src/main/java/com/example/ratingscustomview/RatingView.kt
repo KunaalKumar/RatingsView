@@ -1,38 +1,59 @@
 package com.example.ratingscustomview
 
+import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.RectF
 import android.util.AttributeSet
+import android.util.Log
 import android.view.View
+import android.view.animation.AccelerateDecelerateInterpolator
+import android.view.animation.AccelerateInterpolator
 
 class RatingView: View {
-    constructor(context: Context, attrs: AttributeSet, defStyle: Int) : super(context, attrs, defStyle)
+    constructor (context: Context?) : this(context, null)
 
-    constructor(context: Context, attrs: AttributeSet) : this(context, attrs, 0)
+    constructor(context: Context?, attrs: AttributeSet?) : this(context, attrs, 0)
 
-    override fun onDraw(canvas: Canvas?) {
+    constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int)
+            : super(context, attrs, defStyleAttr)
+
+    var currentNum = 0.8f
+
+    private var animator: ValueAnimator = ValueAnimator.ofFloat(0f, 0.8f)
+
+    init {
+        animator.duration = 1000
+        animator.interpolator = AccelerateDecelerateInterpolator()
+        animator.addUpdateListener { animator ->
+            currentNum = animator.animatedValue as Float
+            invalidate()
+        }
+        animator.start()
+    }
+
+    override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
-        val paint = Paint(Paint.ANTI_ALIAS_FLAG)
-        paint.setShadowLayer(12F, 0F, 0F, Color.RED)
-        setLayerType(LAYER_TYPE_SOFTWARE, paint)
+        val paint = Paint().apply {
+            isAntiAlias = true
+            color = Color.BLACK
+            strokeWidth = 100F
+            strokeCap = Paint.Cap.ROUND
+            style = Paint.Style.STROKE
+        }
 
-        canvas?.let {
-            it.drawCircle(width / 2F, height / 2F, 100F, paint)
+        val oval = RectF(100f, 100f, 500f, 500f)
+
+        canvas.let {
+            it.drawArc(oval, 270f, currentNum * 360f, false, paint)
         }
     }
 
-    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
-
-        val viewWidth = MeasureSpec.getSize(widthMeasureSpec)
-        val viewHeight = MeasureSpec.getSize(heightMeasureSpec)
-
-        setMeasuredDimension(
-            Math.min(viewWidth, 250),
-            Math.min(viewHeight, 250)
-        )
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        animator.removeAllUpdateListeners()
     }
 }
