@@ -1,13 +1,12 @@
 package dev.kunaal.RatingsView
 
-import android.animation.ObjectAnimator
+import android.animation.AnimatorSet
 import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.View
-import androidx.core.animation.doOnEnd
 import androidx.core.content.ContextCompat
 import androidx.core.view.marginBottom
 import androidx.core.view.marginLeft
@@ -23,11 +22,17 @@ class RatingsView: View {
     private var animatedPercent = 0
     private var currentNum = 360F
 
+    private lateinit var arcAnimator: ValueAnimator
+    private lateinit var numberAnimator: ValueAnimator
+    private var animatorSet = AnimatorSet()
+
     private var arcPaint = Paint()
     private var arcColor: Int = ContextCompat.getColor(context, android.R.color.black)
     private var strokeWidth = 50F
     private val oval = RectF(0F, 0F, width.toFloat(), height.toFloat())
-    private lateinit var animator: ValueAnimator
+
+    private var bgPaint = Paint()
+    private var bgColor: Int = ContextCompat.getColor(context, android.R.color.black)
 
     private var textBounds = Rect()
     private val textPaint = Paint()
@@ -49,18 +54,23 @@ class RatingsView: View {
 
     private fun init(attrs: AttributeSet?) {
 
-        val typedValue = TypedValue()
-        context.theme.resolveAttribute(R.attr.colorPrimary, typedValue, true)
-        val primaryColor = typedValue.data
+        val primValue = TypedValue()
+        context.theme.resolveAttribute(R.attr.colorPrimary, primValue, true)
+        val primaryColor = primValue.data
 
-        if(attrs != null) {
+        val bgValue = TypedValue()
+        context.theme.resolveAttribute(R.attr.backgroundColor, primValue, true)
+        val defaultBgColor = bgValue.data
+
+        if (attrs != null) {
             val array = context.obtainStyledAttributes(attrs, R.styleable.RatingsView, 0, 0)
             arcColor = array.getColor(R.styleable.RatingsView_arcColor, primaryColor)
+            bgColor = array.getColor(R.styleable.RatingsView_bgColor, defaultBgColor)
             textColor = array.getColor(R.styleable.RatingsView_textColor, primaryColor)
             array.recycle()
         }
 
-       startAnimation()
+        startAnimation()
     }
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
@@ -81,6 +91,11 @@ class RatingsView: View {
             style = Paint.Style.STROKE
         }
 
+        bgPaint.apply {
+            isAntiAlias = true
+            color = bgColor
+        }
+
         textPaint.apply {
             isAntiAlias = true
             color = textColor
@@ -95,6 +110,7 @@ class RatingsView: View {
         super.onDraw(canvas)
 
         with(canvas) {
+            drawArc(oval, 0F, 360F, true, bgPaint)
             drawArc(oval, 270f, -currentNum, false, arcPaint)
             drawText(animatedPercent.toString(), width / 2F, measuredHeight / 2F + textBounds.height() / 2F, textPaint)
         }
@@ -110,26 +126,43 @@ class RatingsView: View {
 
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
-        animator.removeAllUpdateListeners()
+        arcAnimator.removeAllUpdateListeners()
+        numberAnimator.removeAllUpdateListeners()
     }
 
     // Setup and start animation
     private fun startAnimation() {
-        if(::animator.isInitialized && animator.isRunning)
-            animator.end()
-        animator = ValueAnimator.ofFloat(currentNum, 360 * ratingPercent * 0.01F)
-        animator.duration = 1000
-        animator.interpolator = FastOutSlowInInterpolator()
-        animator.addUpdateListener { animator ->
+        if (animatorSet.isRunning)
+            animatorSet.cancel()
+
+        arcAnimator = ValueAnimator.ofFloat(currentNum, 360 * ratingPercent * 0.01F)
+        arcAnimator.duration = 1000
+        arcAnimator.interpolator = FastOutSlowInInterpolator()
+        arcAnimator.addUpdateListener { animator ->
             currentNum = animator.animatedValue as Float
-            animatedPercent = (ratingPercent * animator.animatedFraction).toInt()
             postInvalidate()
         }
-        animator.start()
+
+        numberAnimator = ValueAnimator.ofInt(animatedPercent, ratingPercent).apply {
+            duration = 1000
+            interpolator = FastOutSlowInInterpolator()
+            addUpdateListener {
+                animatedPercent = animatedValue as Int
+                postInvalidate()
+            }
+        }
+
+        animatorSet.apply {
+            play(arcAnimator)
+                    .with(numberAnimator)
+            start()
+        }
     }
 
     fun setRating(rating: Int) {
         ratingPercent = rating
         startAnimation()
     }
+
+    fun getCurrentRating() = ratingPercent
 }

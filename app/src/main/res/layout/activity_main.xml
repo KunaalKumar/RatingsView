@@ -10,6 +10,7 @@
         android:id="@+id/ratings_view"
         app:textColor="#1988b1"
         app:arcColor="@color/colorAccent"
+        app:bgColor="#2d2d2d"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:layout_constraintStart_toStartOf="parent"
