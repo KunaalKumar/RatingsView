@@ -2,6 +2,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'com.jfrog.bintray'
 apply plugin: 'maven-publish'
+apply plugin: "org.jetbrains.dokka"
 
 android {
     compileSdkVersion 29
@@ -10,8 +11,8 @@ android {
     defaultConfig {
         minSdkVersion 16
         targetSdkVersion 29
-        versionCode 3
-        versionName "0.0.3"
+        versionCode 4
+        versionName "0.0.4"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
@@ -29,6 +30,11 @@ android {
     }
     kotlinOptions {
         jvmTarget = '1.8'
+    }
+
+    task dokkaHtml(type: dokka.class) {
+        outputFormat = 'javadoc'
+        outputDirectory = "docs/"
     }
 }
 
