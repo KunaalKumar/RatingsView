@@ -1,11 +1,9 @@
 package dev.kunaal.view
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.SeekBar
-import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlin.coroutines.CoroutineContext
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -14,7 +12,7 @@ class MainActivity : AppCompatActivity() {
 
         // Initial value for demo purposes
         seekbar.progress = 85
-        ratings_view.setRating(seekbar.progress)
+        ratings_view.rating = seekbar.progress
 
         seekbar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
@@ -24,7 +22,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                ratings_view.setRating(seekbar.progress)
+                ratings_view.rating = seekbar.progress
             }
         })
     }

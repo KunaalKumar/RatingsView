@@ -1,4 +1,4 @@
-package dev.kunaal.RatingsView
+package dev.kunaal.ratings_view
 
 import android.animation.AnimatorSet
 import android.animation.ValueAnimator
@@ -16,11 +16,22 @@ import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import kotlin.math.min
 
 
+/**
+ * Ratings view
+ *
+ * @constructor Create empty Ratings view
+
+ */
 class RatingsView: View {
 
-    private var ratingPercent = 0
+    var rating = 0
+        set(value) {
+            field = value
+            startAnimation()
+        }
+
     private var animatedPercent = 0
-    private var currentNum = 360F
+    private var currentNum = 0F
 
     private lateinit var arcAnimator: ValueAnimator
     private lateinit var numberAnimator: ValueAnimator
@@ -78,10 +89,12 @@ class RatingsView: View {
 
         strokeWidth = width * 0.10F
 
-        oval.set(paddingLeft + marginLeft.toFloat(),
-                paddingTop + marginTop.toFloat(),
-                measuredWidth.toFloat() - paddingRight - marginRight,
-                measuredHeight.toFloat() - paddingBottom - marginBottom)
+        oval.set(
+            paddingLeft + marginLeft.toFloat(),
+            paddingTop + marginTop.toFloat(),
+            measuredWidth.toFloat() - paddingRight - marginRight,
+            measuredHeight.toFloat() - paddingBottom - marginBottom
+        )
 
         arcPaint.apply {
             isAntiAlias = true
@@ -102,7 +115,7 @@ class RatingsView: View {
             textSize = (measuredWidth - paddingLeft - marginLeft - paddingRight - marginRight) * 0.35F
             textAlign = Paint.Align.CENTER
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
-            getTextBounds(ratingPercent.toString(), 0, ratingPercent.toString().length, textBounds)
+            getTextBounds(rating.toString(), 0, rating.toString().length, textBounds)
         }
     }
 
@@ -135,17 +148,13 @@ class RatingsView: View {
         if (animatorSet.isRunning)
             animatorSet.cancel()
 
-        arcAnimator = ValueAnimator.ofFloat(currentNum, 360 * ratingPercent * 0.01F)
-        arcAnimator.duration = 1000
-        arcAnimator.interpolator = FastOutSlowInInterpolator()
+        arcAnimator = ValueAnimator.ofFloat(currentNum, 360 * rating * 0.01F)
         arcAnimator.addUpdateListener { animator ->
             currentNum = animator.animatedValue as Float
             postInvalidate()
         }
 
-        numberAnimator = ValueAnimator.ofInt(animatedPercent, ratingPercent).apply {
-            duration = 1000
-            interpolator = FastOutSlowInInterpolator()
+        numberAnimator = ValueAnimator.ofInt(animatedPercent, rating).apply {
             addUpdateListener {
                 animatedPercent = animatedValue as Int
                 postInvalidate()
@@ -153,16 +162,11 @@ class RatingsView: View {
         }
 
         animatorSet.apply {
+            duration = 1000
+            interpolator = FastOutSlowInInterpolator()
             play(arcAnimator)
-                    .with(numberAnimator)
+                .with(numberAnimator)
             start()
         }
     }
-
-    fun setRating(rating: Int) {
-        ratingPercent = rating
-        startAnimation()
-    }
-
-    fun getCurrentRating() = ratingPercent
 }

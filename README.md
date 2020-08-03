@@ -17,9 +17,10 @@ dependencies {
 
 ## XML 
 ```xml
-<dev.kunaal.RatingsView.RatingsView
+<dev.kunaal.ratings_view.RatingsView
         app:textColor="@color/colorAccent"
         app:arcColor="@color/colorAccent"
+        app:bgColor="#2d2d2d"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 ```
@@ -29,6 +30,6 @@ If `textColor` and/or `arcColor` isn't set, the application's primary color (`R.
 ```kotlin
 val ratingsView = findViewById<RatingsView>(R.id.ratings_view)
 
-ratingsView.setRatings(84)
+ratingsView.rating = 84
 ```
 This will animate the number to `84`, as well as the arc itself.

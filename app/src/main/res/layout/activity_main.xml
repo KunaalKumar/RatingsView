@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     tools:context="dev.kunaal.view.MainActivity">
 
-    <dev.kunaal.RatingsView.RatingsView
+    <dev.kunaal.ratings_view.RatingsView
         android:id="@+id/ratings_view"
         app:textColor="#1988b1"
         app:arcColor="@color/colorAccent"
@@ -16,7 +16,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/seekbar"/>
+        app:layout_constraintBottom_toTopOf="@id/seekbar" />
 
     <androidx.appcompat.widget.AppCompatSeekBar
         android:id="@+id/seekbar"
