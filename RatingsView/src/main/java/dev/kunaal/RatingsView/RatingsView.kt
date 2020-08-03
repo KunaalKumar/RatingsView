@@ -1,22 +1,25 @@
 package dev.kunaal.RatingsView
 
+import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.View
+import androidx.core.animation.doOnEnd
 import androidx.core.content.ContextCompat
 import androidx.core.view.marginBottom
 import androidx.core.view.marginLeft
 import androidx.core.view.marginRight
 import androidx.core.view.marginTop
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
+import kotlin.math.min
 
 
 class RatingsView: View {
 
-    private val ratingPercent = 80
+    private var ratingPercent = 0
     private var animatedPercent = 0
     private var currentNum = 360F
 
@@ -24,7 +27,7 @@ class RatingsView: View {
     private var arcColor: Int = ContextCompat.getColor(context, android.R.color.black)
     private var strokeWidth = 50F
     private val oval = RectF(0F, 0F, width.toFloat(), height.toFloat())
-    private var animator: ValueAnimator = ValueAnimator.ofFloat(0F, 360 * ratingPercent * 0.01F)
+    private lateinit var animator: ValueAnimator
 
     private var textBounds = Rect()
     private val textPaint = Paint()
@@ -57,26 +60,18 @@ class RatingsView: View {
             array.recycle()
         }
 
-        // Setup and start animation
-            animator.duration = 1000
-        animator.interpolator = FastOutSlowInInterpolator()
-        animator.addUpdateListener { animator ->
-            currentNum = animator.animatedValue as Float
-            animatedPercent = (ratingPercent * animator.animatedFraction).toInt()
-            postInvalidate()
-        }
-        animator.start()
+       startAnimation()
     }
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
 
-        strokeWidth = width * 0.05F
+        strokeWidth = width * 0.10F
 
         oval.set(paddingLeft + marginLeft.toFloat(),
-            paddingTop + marginTop.toFloat(),
-            width.toFloat() - paddingRight - marginRight,
-            height.toFloat() - paddingBottom - marginBottom)
+                paddingTop + marginTop.toFloat(),
+                measuredWidth.toFloat() - paddingRight - marginRight,
+                measuredHeight.toFloat() - paddingBottom - marginBottom)
 
         arcPaint.apply {
             isAntiAlias = true
@@ -89,7 +84,7 @@ class RatingsView: View {
         textPaint.apply {
             isAntiAlias = true
             color = textColor
-            textSize = (width - paddingLeft - marginLeft - paddingRight - marginRight) * 0.35F
+            textSize = (measuredWidth - paddingLeft - marginLeft - paddingRight - marginRight) * 0.35F
             textAlign = Paint.Align.CENTER
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             getTextBounds(ratingPercent.toString(), 0, ratingPercent.toString().length, textBounds)
@@ -101,12 +96,40 @@ class RatingsView: View {
 
         with(canvas) {
             drawArc(oval, 270f, -currentNum, false, arcPaint)
-            drawText(animatedPercent.toString(), width / 2F, height / 2F + textBounds.height() / 2F, textPaint)
+            drawText(animatedPercent.toString(), width / 2F, measuredHeight / 2F + textBounds.height() / 2F, textPaint)
         }
+    }
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        val widthSize = MeasureSpec.getSize(widthMeasureSpec)
+        val heightSize = MeasureSpec.getSize(heightMeasureSpec)
+        val size = min(widthSize, heightSize)
+        setPadding(60, 60, 60, 60)
+        setMeasuredDimension(size, size)
     }
 
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
         animator.removeAllUpdateListeners()
+    }
+
+    // Setup and start animation
+    private fun startAnimation() {
+        if(::animator.isInitialized && animator.isRunning)
+            animator.end()
+        animator = ValueAnimator.ofFloat(currentNum, 360 * ratingPercent * 0.01F)
+        animator.duration = 1000
+        animator.interpolator = FastOutSlowInInterpolator()
+        animator.addUpdateListener { animator ->
+            currentNum = animator.animatedValue as Float
+            animatedPercent = (ratingPercent * animator.animatedFraction).toInt()
+            postInvalidate()
+        }
+        animator.start()
+    }
+
+    fun setRating(rating: Int) {
+        ratingPercent = rating
+        startAnimation()
     }
 }

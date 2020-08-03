@@ -6,20 +6,24 @@
     android:layout_height="match_parent"
     tools:context="dev.kunaal.view.MainActivity">
 
-    <LinearLayout
-        android:layout_width="100dp"
-        android:layout_height="100dp"
+    <dev.kunaal.RatingsView.RatingsView
+        android:id="@+id/ratings_view"
+        app:textColor="#1988b1"
+        app:arcColor="@color/colorAccent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent">
+        app:layout_constraintBottom_toTopOf="@id/seekbar"/>
 
-        <dev.kunaal.RatingsView.RatingsView
-            android:layout_margin="16dp"
-            app:textColor="#1988b1"
-            app:arcColor="@color/colorAccent"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-    </LinearLayout>
+    <androidx.appcompat.widget.AppCompatSeekBar
+        android:id="@+id/seekbar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/ratings_view"
+        app:layout_constraintBottom_toBottomOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
