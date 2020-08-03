@@ -1,2 +1,3 @@
+include ':RatingsView'
 include ':app'
 rootProject.name = "RatingsCustomView"
