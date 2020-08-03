@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <declare-styleable name="RatingView">
+    <declare-styleable name="RatingsView">
         <attr name="arcColor" format="color"/>
         <attr name="textColor" format="color"/>
     </declare-styleable>

@@ -1,9 +1,10 @@
-package dev.kunaal.view
+package dev.kunaal.RatingsView
 
 import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
+import android.util.TypedValue
 import android.view.View
 import androidx.core.content.ContextCompat
 import androidx.core.view.marginBottom
@@ -12,21 +13,22 @@ import androidx.core.view.marginRight
 import androidx.core.view.marginTop
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 
-class RatingView: View {
+
+class RatingsView: View {
 
     private val ratingPercent = 80
     private var animatedPercent = 0
     private var currentNum = 360F
 
     private var arcPaint = Paint()
-    private var arcColor: Int = ContextCompat.getColor(context, R.color.colorPrimary)
+    private var arcColor: Int = ContextCompat.getColor(context, android.R.color.black)
     private var strokeWidth = 50F
     private val oval = RectF(0F, 0F, width.toFloat(), height.toFloat())
     private var animator: ValueAnimator = ValueAnimator.ofFloat(0F, 360 * ratingPercent * 0.01F)
 
     private var textBounds = Rect()
     private val textPaint = Paint()
-    private var textColor: Int = ContextCompat.getColor(context, R.color.colorPrimary)
+    private var textColor: Int = ContextCompat.getColor(context, android.R.color.black)
 
 
     constructor (context: Context?) : this(context, null) {
@@ -44,10 +46,14 @@ class RatingView: View {
 
     private fun init(attrs: AttributeSet?) {
 
+        val typedValue = TypedValue()
+        context.theme.resolveAttribute(R.attr.colorPrimary, typedValue, true)
+        val primaryColor = typedValue.data
+
         if(attrs != null) {
-            val array = context.obtainStyledAttributes(attrs, R.styleable.RatingView, 0, 0)
-            arcColor = array.getColor(R.styleable.RatingView_arcColor, arcColor)
-            textColor = array.getColor(R.styleable.RatingView_textColor, arcColor)
+            val array = context.obtainStyledAttributes(attrs, R.styleable.RatingsView, 0, 0)
+            arcColor = array.getColor(R.styleable.RatingsView_arcColor, primaryColor)
+            textColor = array.getColor(R.styleable.RatingsView_textColor, primaryColor)
             array.recycle()
         }
 
@@ -75,7 +81,7 @@ class RatingView: View {
         arcPaint.apply {
             isAntiAlias = true
             color = arcColor
-            strokeWidth = this@RatingView.strokeWidth
+            strokeWidth = this@RatingsView.strokeWidth
             strokeCap = Paint.Cap.ROUND
             style = Paint.Style.STROKE
         }

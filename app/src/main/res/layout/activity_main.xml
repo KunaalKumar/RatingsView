@@ -14,13 +14,12 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <dev.kunaal.view.RatingView
+        <dev.kunaal.RatingsView.RatingsView
             android:layout_margin="16dp"
             app:textColor="#1988b1"
             app:arcColor="@color/colorAccent"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
-
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
