@@ -1,4 +1,4 @@
-package com.example.ratingscustomview
+package dev.kunaal.view
 
 import org.junit.Test
 
