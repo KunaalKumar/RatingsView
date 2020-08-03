@@ -4,6 +4,8 @@ apply plugin: 'com.jfrog.bintray'
 apply plugin: 'maven-publish'
 apply plugin: "org.jetbrains.dokka"
 
+def versionIdentifier = "0.0.4"
+
 android {
     compileSdkVersion 29
     buildToolsVersion "30.0.1"
@@ -12,7 +14,7 @@ android {
         minSdkVersion 16
         targetSdkVersion 29
         versionCode 4
-        versionName "0.0.4"
+        versionName versionIdentifier
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
@@ -51,7 +53,7 @@ dependencies {
 
 def libGroupId = 'dev.kunaal'
 def libArtifactId = 'RatingsView'
-def libVersion = '0.0.3'
+def libVersion = versionIdentifier
 def libDesc = 'An android custom view to show ratings'
 def libLicenses = ['Apache-2.0']
 def libVCSUrl = 'https://github.com/KunaalKumar/RatingsView.git'
