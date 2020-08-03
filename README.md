@@ -2,6 +2,7 @@
 An android custom view to show ratings
 
 [![API](https://img.shields.io/badge/API-16%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=16)
+[ ![Download](https://api.bintray.com/packages/kunaalkumar/ratings-view/dev.kunaal%3ARatingsView/images/download.svg?version=0.0.3) ](https://bintray.com/kunaalkumar/ratings-view/dev.kunaal%3ARatingsView/0.0.3/link)
 
 
 <img src="static/preview.gif" alt="sample" title="sample" width="300"/>
