@@ -33,10 +33,51 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
+}
 
-    task dokkaHtml(type: dokka.class) {
-        outputFormat = 'javadoc'
-        outputDirectory = "docs/"
+dokkaGfm {
+    delete "../instructions/"
+    outputDirectory = "../instructions/"
+}
+
+dokkaHtml {
+    delete "../docs/"
+    outputDirectory = "../docs/"
+    // Used for disabling auto extraction of sources and platforms
+    // When set to true kotlinTasks are also omitted
+    disableAutoconfiguration = false
+
+    // Use default or set to custom path to cache directory
+    // to enable package-list caching
+    // When this is set to default, caches are stored in $USER_HOME/.cache/dokka
+    cacheRoot = "default"
+    dokkaSourceSets {
+        configureEach {
+
+            // Use to include or exclude non public members
+            includeNonPublic = false
+
+            // Do not output deprecated members. Applies globally, can be overridden by packageOptions
+            skipDeprecated = false
+
+            // Emit warnings about not documented members. Applies globally, also can be overridden by packageOptions
+            reportUndocumented = true
+
+            // Do not create index pages for empty packages
+            skipEmptyPackages = true
+
+            // Used for linking to JDK documentation
+            jdkVersion = 8
+
+            // Disable linking to online kotlin-stdlib documentation
+            noStdlibLink = false
+
+            // Disable linking to online JDK documentation
+            noJdkLink = false
+
+            // Disable linking to online Android documentation (only applicable for Android projects)
+            noAndroidSdkLink = false
+        }
     }
 }
 
