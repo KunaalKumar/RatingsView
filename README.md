@@ -2,7 +2,7 @@
 An android custom view to show ratings
 
 [![API](https://img.shields.io/badge/API-16%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=16)
-[ ![Download](https://api.bintray.com/packages/kunaalkumar/ratings-view/dev.kunaal:ratings_view/images/download.svg?version=0.0.5) ](https://bintray.com/kunaalkumar/ratings-view/dev.kunaal:ratings_view/0.0.5/link)
+[ ![Download](https://api.bintray.com/packages/kunaalkumar/ratings-view/dev.kunaal:ratings_view/images/download.svg?version=0.0.6) ](https://bintray.com/kunaalkumar/ratings-view/dev.kunaal:ratings_view/0.0.6/link)
 [![Generic badge](https://img.shields.io/badge/Documentation-important.svg)](https://kunaalkumar.github.io/RatingsView/ratings_view/dev.kunaal.ratings_view/-ratings-view/index.html)
 
 <img align="right" display="block" src="static/preview.gif" alt="sample" title="sample" width="300" />
@@ -11,7 +11,7 @@ An android custom view to show ratings
 Add this to your module `build.gradle`:
 ```gradle
 dependencies {
-    implementation 'implementation 'dev.kunaal:RatingsView:0.0.5'
+    implementation 'implementation 'dev.kunaal:RatingsView:0.0.6'
 }
 ```
 
