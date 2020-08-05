@@ -136,7 +136,7 @@ class RatingsView
         val primaryColor = primValue.data
 
         val bgValue = TypedValue()
-        context.theme.resolveAttribute(R.attr.backgroundColor, primValue, true)
+        context.theme.resolveAttribute(R.attr.background, primValue, true)
         val defaultBgColor = bgValue.data
 
         if (attrs != null) {
