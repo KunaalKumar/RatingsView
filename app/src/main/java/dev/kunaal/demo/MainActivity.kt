@@ -22,15 +22,21 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         // Initial value for demo purposes
-        seekbar.progress = (0..100).random()
-        ratings_view.rating = seekbar.progress
+        progress_seekbar.progress = (0..100).random()
+        ratings_view.rating = progress_seekbar.progress
 
         setupThresholdColorsButton()
         setupBgButton()
         setupArcColorButton()
         setupTextColorButton()
 
-        seekbar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+        setupProgressSeekBar()
+        setupTextScaleSeekBar()
+
+    }
+
+    private fun setupProgressSeekBar() {
+        progress_seekbar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
             }
 
@@ -38,7 +44,21 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                ratings_view.rating = seekbar.progress
+                ratings_view.rating = seekBar!!.progress
+            }
+        })
+    }
+
+    private fun setupTextScaleSeekBar() {
+        text_scale_seekbar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                ratings_view.textScale = 1 + ((seekBar!!.progress - 50) / 100F)
             }
         })
     }

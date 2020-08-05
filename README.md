@@ -5,7 +5,7 @@ An android custom view to show ratings
 [ ![Download](https://api.bintray.com/packages/kunaalkumar/ratings-view/dev.kunaal:ratings_view/images/download.svg?version=0.0.5) ](https://bintray.com/kunaalkumar/ratings-view/dev.kunaal:ratings_view/0.0.5/link)
 [![Generic badge](https://img.shields.io/badge/Documentation-important.svg)](https://ratings-view.kunaal.dev)
 
-<img src="static/preview.gif" alt="sample" title="sample" width="300"/>
+<img align="right" src="static/preview.gif" alt="sample" title="sample" width="300" />
 
 ## Dependency
 Add this to your module `build.gradle`:
@@ -24,14 +24,20 @@ dependencies {
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 ```
-If `textColor` and/or `arcColor` isn't set, the application's primary color (`R.attr.colorPrimary`) is used.
-
 ```kotlin
 val ratingsView = findViewById<RatingsView>(R.id.ratings_view)
 
 ratingsView.rating = 84
 ```
 This will animate the number to `84`, as well as the arc itself.
+
+## Attributes
+| Attribute | Default Value | Definition |
+| --- | --- | --- |
+| `textColor` | `R.attr.colorPrimary` | Color of the ratings number
+| `arcColor` | `R.attr.colorPrimary` | Color of the arc
+| `bgColor` | `R.attr.background` | Color of the oval
+| `textScale` | `1F` | Number to scale text by
 
 ### Multiple Arc Colors
 Arc color can be changed depending on the ratings value.

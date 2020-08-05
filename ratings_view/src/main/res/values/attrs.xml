@@ -4,5 +4,6 @@
         <attr name="arcColor" format="color"/>
         <attr name="textColor" format="color"/>
         <attr name="bgColor" format="color" />
+        <attr name="textScale" format="float" />
     </declare-styleable>
 </resources>

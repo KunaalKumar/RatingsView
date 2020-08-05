@@ -9,10 +9,7 @@ import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.View
 import androidx.core.content.ContextCompat
-import androidx.core.view.marginBottom
-import androidx.core.view.marginLeft
-import androidx.core.view.marginRight
-import androidx.core.view.marginTop
+import androidx.core.view.*
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import java.util.*
 import kotlin.collections.set
@@ -31,19 +28,6 @@ import kotlin.math.min
 class RatingsView
 @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0)
     : View(context, attrs, defStyleAttr) {
-
-    /**
-     * Rating number to display.
-     *
-     * Arc percentage is based off of this value.
-     *
-     * Setting the value will automatically update view.
-     */
-    var rating = 0
-        set(value) {
-            field = max(0, min(value, 100))
-            startAnimation()
-        }
 
     private var animatedRating = 0
     private var currentNum = 0F
@@ -70,6 +54,32 @@ class RatingsView
 
     // Color ranges map indicating the color to be displayed at percent
     private val colorRangeMap = TreeMap<Int, Int>()
+
+
+    /**
+     * Rating number to display.
+     *
+     * Arc percentage is based off of this value.
+     * Number should be between 0 - 100
+     * Setting the value will automatically update view.
+     */
+    var rating = 0
+        set(value) {
+            field = max(0, min(value, 100))
+            startAnimation()
+        }
+
+    /**
+     * Number to scale rating number by
+     *
+     * Number should be between 0F - 2F
+     * Setting the scale will automatically update view.
+     */
+    var textScale: Float = 0F
+        set(value) {
+            field = max(0F, min(value, 2F))
+            changeRatingTextSize(getRatingTextSize(field))
+        }
 
     /**
      * Changes default background color
@@ -118,7 +128,6 @@ class RatingsView
             colorRangeMap[0] = arcColor
         colorRangeMap[threshold] = color
         changeArcColor(colorRangeMap.floorEntry(rating)!!.value)
-        postInvalidate()
     }
 
     /**
@@ -132,7 +141,6 @@ class RatingsView
             colorRangeMap[0] = arcColor
         colorRangeMap.putAll(map)
         changeArcColor(colorRangeMap.floorEntry(rating)!!.value)
-        postInvalidate()
     }
 
     /**
@@ -151,7 +159,6 @@ class RatingsView
             changeArcColor(arcColor)
         else
             changeArcColor(colorRangeMap.floorEntry(rating)!!.value)
-        postInvalidate()
     }
 
     /**
@@ -161,7 +168,6 @@ class RatingsView
     fun removeAllArcThresholdColor() {
         colorRangeMap.clear()
         changeArcColor(arcColor)
-        postInvalidate()
     }
 
     init {
@@ -178,7 +184,13 @@ class RatingsView
             arcColor = array.getColor(R.styleable.RatingsView_arcColor, primaryColor)
             bgColor = array.getColor(R.styleable.RatingsView_bgColor, defaultBgColor)
             textColor = array.getColor(R.styleable.RatingsView_textColor, primaryColor)
-            array.recycle()
+            doOnNextLayout {
+                changeRatingTextSize(
+                    getRatingTextSize(array.getFloat(R.styleable.RatingsView_textScale, 1F)),
+                    true
+                )
+                array.recycle()
+            }
         }
 
         startAnimation()
@@ -187,13 +199,13 @@ class RatingsView
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
 
-        strokeWidth = width * 0.10F
+        strokeWidth = measuredWidth * 0.10F
 
         oval.set(
-                paddingLeft + marginLeft.toFloat(),
-                paddingTop + marginTop.toFloat(),
-                measuredWidth.toFloat() - paddingRight - marginRight,
-                measuredHeight.toFloat() - paddingBottom - marginBottom
+            paddingLeft + marginLeft.toFloat(),
+            paddingTop + marginTop.toFloat(),
+            measuredWidth.toFloat() - paddingRight - marginRight,
+            measuredHeight.toFloat() - paddingBottom - marginBottom
         )
 
         arcPaint.apply {
@@ -212,7 +224,7 @@ class RatingsView
         textPaint.apply {
             isAntiAlias = true
             color = textColor
-            textSize = (measuredWidth - paddingLeft - marginLeft - paddingRight - marginRight) * 0.35F
+            textSize = getRatingTextSize(0F)
             textAlign = Paint.Align.CENTER
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             getTextBounds(rating.toString(), 0, rating.toString().length, textBounds)
@@ -225,7 +237,12 @@ class RatingsView
         with(canvas) {
             drawArc(oval, 0F, 360F, true, bgPaint)
             drawArc(oval, 270f, -currentNum, false, arcPaint)
-            drawText(animatedRating.toString(), width / 2F, measuredHeight / 2F + textBounds.height() / 2F, textPaint)
+            drawText(
+                animatedRating.toString(),
+                oval.centerX(),
+                oval.centerY() + textBounds.height() / 2F,
+                textPaint
+            )
         }
     }
 
@@ -233,7 +250,8 @@ class RatingsView
         val widthSize = MeasureSpec.getSize(widthMeasureSpec)
         val heightSize = MeasureSpec.getSize(heightMeasureSpec)
         val size = min(widthSize, heightSize)
-        setPadding(60, 60, 60, 60)
+        val paddingSize = (size * 0.1).toInt()
+        setPadding(paddingSize, paddingSize, paddingSize, paddingSize)
         setMeasuredDimension(size, size)
     }
 
@@ -325,5 +343,29 @@ class RatingsView
             }
             start()
         }
+    }
+
+    private fun getRatingTextSize(forScale: Float): Float {
+        return ((measuredWidth - paddingLeft - marginLeft - paddingRight - marginRight) * 0.35F) * forScale
+    }
+
+    private lateinit var textSizeAnimator: ValueAnimator
+    private fun changeRatingTextSize(toSize: Float, enableLongAnim: Boolean = false) {
+        if (::textSizeAnimator.isInitialized && textSizeAnimator.isRunning)
+            textSizeAnimator.cancel()
+
+        textSizeAnimator = ValueAnimator.ofFloat(textPaint.textSize, toSize).apply {
+            if (enableLongAnim)
+                duration = 1000
+            addUpdateListener {
+                textPaint.apply {
+                    textSize = animatedValue as Float
+                    getTextBounds(rating.toString(), 0, rating.toString().length, textBounds)
+                }
+                postInvalidate()
+            }
+            start()
+        }
+
     }
 }

@@ -36,12 +36,10 @@ android {
 }
 
 dokkaGfm {
-    delete "../documentation/"
-    outputDirectory = "../documentation/"
+    outputDirectory = "../docs/"
 }
 
 dokkaHtml {
-    delete "../docs/"
     outputDirectory = "../docs/"
     // Used for disabling auto extraction of sources and platforms
     // When set to true kotlinTasks are also omitted
@@ -61,7 +59,7 @@ dokkaHtml {
             skipDeprecated = false
 
             // Emit warnings about not documented members. Applies globally, also can be overridden by packageOptions
-            reportUndocumented = true
+            reportUndocumented = false
 
             // Do not create index pages for empty packages
             skipEmptyPackages = true
