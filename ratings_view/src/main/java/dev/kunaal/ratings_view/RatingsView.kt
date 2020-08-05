@@ -1,6 +1,7 @@
 package dev.kunaal.ratings_view
 
 import android.animation.AnimatorSet
+import android.animation.ArgbEvaluator
 import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.*
@@ -13,28 +14,43 @@ import androidx.core.view.marginLeft
 import androidx.core.view.marginRight
 import androidx.core.view.marginTop
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
+import java.util.*
+import kotlin.collections.set
 import kotlin.math.min
-
 
 /**
  * Ratings view
  *
- * @constructor Create empty Ratings view
-
+ * @constructor
+ *
+ * @param context
+ * @param attrs
+ * @param defStyleAttr
  */
-class RatingsView: View {
+class RatingsView
+@JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0)
+    : View(context, attrs, defStyleAttr) {
 
+    /**
+     * Rating number to display.
+     *
+     * Arc percentage is based off of this value.
+     *
+     * Setting the value will automatically update view.
+     */
     var rating = 0
         set(value) {
             field = value
             startAnimation()
         }
 
-    private var animatedPercent = 0
+    private var animatedRating = 0
     private var currentNum = 0F
 
+    private var lastColor = 0
     private lateinit var arcAnimator: ValueAnimator
     private lateinit var numberAnimator: ValueAnimator
+    private lateinit var colorAnimator: ValueAnimator
     private var animatorSet = AnimatorSet()
 
     private var arcPaint = Paint()
@@ -49,22 +65,72 @@ class RatingsView: View {
     private val textPaint = Paint()
     private var textColor: Int = ContextCompat.getColor(context, android.R.color.black)
 
+    // Color ranges map indicating the color to be displayed at percent
+    private val colorRangeMap = TreeMap<Int, Int>()
 
-    constructor (context: Context?) : this(context, null) {
-        init(null)
+    /**
+     * Adds the arc color to be displayed within the given threshold.
+     * To change color, simply override the threshold
+     *
+     * Example: Calling `addThreshold(10, Color.RED)`, will display the color red for values 0-10
+     * Furthermore, calling `addThreshold(5, Color.BLACK)`, will display the color black from 0-5
+     *   and the color red from 6-10
+     *
+     * @param threshold number below which color should be displayed
+     * @param color color to be displayed within the threshold limits
+     */
+    fun addArcThresholdColor(threshold: Int, color: Int) {
+        if (threshold != 0 && !colorRangeMap.containsKey(0))
+            colorRangeMap[0] = arcColor
+        colorRangeMap[threshold] = color
+        startColorAnimation(colorRangeMap.floorEntry(rating)!!.value)
+        postInvalidate()
     }
 
-    constructor(context: Context?, attrs: AttributeSet?) : this(context, attrs, 0) {
-        init(attrs)
+    /**
+     * Adds given map of arc color to be displayed within the given threshold.
+     * To change color, simply override the threshold
+     *
+     * @param map map of threshold(key) and color(value) to be displayed within the threshold limits
+     */
+    fun addArcThresholdColor(map: Map<Int, Int>) {
+        if (!map.containsKey(0))
+            colorRangeMap[0] = arcColor
+        colorRangeMap.putAll(map)
+        startColorAnimation(colorRangeMap.floorEntry(rating)!!.value)
+        postInvalidate()
     }
 
-    constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int)
-            : super(context, attrs, defStyleAttr) {
-        init(attrs)
+    /**
+     * Removes the arc color to be displayed for the threshold
+     * NOTE: Threshold value of `0` must be the last one to be deleted,
+     *   ie. all other values must be deleted first
+     *
+     * @param threshold
+     */
+    fun removeArcThresholdColor(threshold: Int) {
+        if (threshold == 0 && colorRangeMap.size > 1)
+            throw RuntimeException("Threshold of value '0' must be the last to be removed")
+
+        colorRangeMap.remove(threshold)
+        if (colorRangeMap.isEmpty())
+            startColorAnimation(arcColor)
+        else
+            startColorAnimation(colorRangeMap.floorEntry(rating)!!.value)
+        postInvalidate()
     }
 
-    private fun init(attrs: AttributeSet?) {
+    /**
+     * Removes all threshold colors for the arc
+     *
+     */
+    fun removeAllArcThresholdColor() {
+        colorRangeMap.clear()
+        startColorAnimation(arcColor)
+        postInvalidate()
+    }
 
+    init {
         val primValue = TypedValue()
         context.theme.resolveAttribute(R.attr.colorPrimary, primValue, true)
         val primaryColor = primValue.data
@@ -90,10 +156,10 @@ class RatingsView: View {
         strokeWidth = width * 0.10F
 
         oval.set(
-            paddingLeft + marginLeft.toFloat(),
-            paddingTop + marginTop.toFloat(),
-            measuredWidth.toFloat() - paddingRight - marginRight,
-            measuredHeight.toFloat() - paddingBottom - marginBottom
+                paddingLeft + marginLeft.toFloat(),
+                paddingTop + marginTop.toFloat(),
+                measuredWidth.toFloat() - paddingRight - marginRight,
+                measuredHeight.toFloat() - paddingBottom - marginBottom
         )
 
         arcPaint.apply {
@@ -125,7 +191,7 @@ class RatingsView: View {
         with(canvas) {
             drawArc(oval, 0F, 360F, true, bgPaint)
             drawArc(oval, 270f, -currentNum, false, arcPaint)
-            drawText(animatedPercent.toString(), width / 2F, measuredHeight / 2F + textBounds.height() / 2F, textPaint)
+            drawText(animatedRating.toString(), width / 2F, measuredHeight / 2F + textBounds.height() / 2F, textPaint)
         }
     }
 
@@ -143,7 +209,10 @@ class RatingsView: View {
         numberAnimator.removeAllUpdateListeners()
     }
 
-    // Setup and start animation
+    /**
+     * Starts arc and number animation.
+     * Number animation also calls startColorAnimation() if required
+     */
     private fun startAnimation() {
         if (animatorSet.isRunning)
             animatorSet.cancel()
@@ -154,18 +223,42 @@ class RatingsView: View {
             postInvalidate()
         }
 
-        numberAnimator = ValueAnimator.ofInt(animatedPercent, rating).apply {
+        numberAnimator = ValueAnimator.ofInt(animatedRating, rating).apply {
+            interpolator = FastOutSlowInInterpolator()
             addUpdateListener {
-                animatedPercent = animatedValue as Int
+                animatedRating = animatedValue as Int
+                if (colorRangeMap.isNotEmpty() && colorRangeMap.floorKey(animatedRating)!! != lastColor) {
+                    lastColor = colorRangeMap.floorKey(animatedRating)
+                    startColorAnimation(colorRangeMap[lastColor]!!)
+                }
                 postInvalidate()
             }
         }
 
-        animatorSet.apply {
+        animatorSet = AnimatorSet().apply {
             duration = 1000
             interpolator = FastOutSlowInInterpolator()
-            play(arcAnimator)
-                .with(numberAnimator)
+            playTogether(arcAnimator, numberAnimator)
+            start()
+        }
+    }
+
+    /**
+     * Starts animating arc color to given color
+     *
+     * @param toColor color to animate to
+     */
+    private fun startColorAnimation(toColor: Int) {
+        if (::colorAnimator.isInitialized && colorAnimator.isRunning)
+            colorAnimator.cancel()
+
+        colorAnimator = ValueAnimator().apply {
+            setIntValues(arcPaint.color, toColor)
+            setEvaluator(ArgbEvaluator())
+            addUpdateListener {
+                arcPaint.color = animatedValue as Int
+                postInvalidate()
+            }
             start()
         }
     }
