@@ -5,7 +5,7 @@ An android custom view to show ratings
 [ ![Download](https://api.bintray.com/packages/kunaalkumar/ratings-view/dev.kunaal:ratings_view/images/download.svg?version=0.0.5) ](https://bintray.com/kunaalkumar/ratings-view/dev.kunaal:ratings_view/0.0.5/link)
 [![Generic badge](https://img.shields.io/badge/Documentation-important.svg)](https://kunaalkumar.github.io/RatingsView/ratings_view/dev.kunaal.ratings_view/-ratings-view/index.html)
 
-<img align="right" src="static/preview.gif" alt="sample" title="sample" width="300" />
+<img align="right" display="block" src="static/preview.gif" alt="sample" title="sample" width="300" />
 
 ## Dependency
 Add this to your module `build.gradle`:
@@ -38,6 +38,7 @@ This will animate the number to `84`, as well as the arc itself.
 | `arcColor` | `R.attr.colorPrimary` | Color of the arc
 | `bgColor` | `R.attr.background` | Color of the oval
 | `textScale` | `1F` | Number to scale text by
+| `arcWidthScale` | `1F` | Number to scale arc width by
 
 ### Multiple Arc Colors
 Arc color can be changed depending on the ratings value.

@@ -33,16 +33,13 @@ class RatingsView
     private var currentNum = 0F
 
     private var lastColor = 0
-    private lateinit var arcAnimator: ValueAnimator
-    private lateinit var numberAnimator: ValueAnimator
-    private lateinit var colorAnimator: ValueAnimator
-    private lateinit var bgColorAnimator: ValueAnimator
-    private lateinit var textColorAnimator: ValueAnimator
+    private var arcAnimator = ValueAnimator()
+    private var numberAnimator = ValueAnimator()
     private var animatorSet = AnimatorSet()
 
     private var arcPaint = Paint()
     private var arcColor: Int = ContextCompat.getColor(context, android.R.color.black)
-    private var strokeWidth = 50F
+    private var arcWidth = 0F
     private val oval = RectF(0F, 0F, width.toFloat(), height.toFloat())
 
     private var bgPaint = Paint()
@@ -170,7 +167,32 @@ class RatingsView
         changeArcColor(arcColor)
     }
 
+    /**
+     * Scales arc width based on view width
+     * Default scale value is 0.1F
+     *
+     * @param scale number to scale arc width by
+     */
+    fun setArcWidthScale(scale: Float) {
+        arcWidth = max(0F, getStandardArcWidth() * scale)
+        changeArcWidth(arcWidth)
+    }
+
+    /**
+     * Sets arc width independent of view width
+     *
+     * @param width number in px of arc width
+     */
+    fun setArcWidth(width: Float) {
+        arcWidth = width
+        changeArcWidth(arcWidth)
+    }
+
+    /*********************************** Private **********************************/
+
     init {
+        isSaveEnabled = true
+
         val primValue = TypedValue()
         context.theme.resolveAttribute(R.attr.colorPrimary, primValue, true)
         val primaryColor = primValue.data
@@ -186,9 +208,14 @@ class RatingsView
             textColor = array.getColor(R.styleable.RatingsView_textColor, primaryColor)
             doOnNextLayout {
                 changeRatingTextSize(
-                    getRatingTextSize(array.getFloat(R.styleable.RatingsView_textScale, 1F)),
-                    true
+                        getRatingTextSize(array.getFloat(R.styleable.RatingsView_textScale, 1F)),
+                        true
                 )
+
+                arcWidth = getStandardArcWidth() *
+                        array.getFloat(R.styleable.RatingsView_arcWidthScale, getStandardArcWidth())
+
+                changeArcWidth(arcWidth)
                 array.recycle()
             }
         }
@@ -199,19 +226,17 @@ class RatingsView
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
 
-        strokeWidth = measuredWidth * 0.10F
-
         oval.set(
-            paddingLeft + marginLeft.toFloat(),
-            paddingTop + marginTop.toFloat(),
-            measuredWidth.toFloat() - paddingRight - marginRight,
-            measuredHeight.toFloat() - paddingBottom - marginBottom
+                paddingLeft + marginLeft.toFloat(),
+                paddingTop + marginTop.toFloat(),
+                measuredWidth.toFloat() - paddingRight - marginRight,
+                measuredHeight.toFloat() - paddingBottom - marginBottom
         )
 
         arcPaint.apply {
             isAntiAlias = true
             color = arcColor
-            strokeWidth = this@RatingsView.strokeWidth
+            strokeWidth = arcWidth
             strokeCap = Paint.Cap.ROUND
             style = Paint.Style.STROKE
         }
@@ -238,10 +263,10 @@ class RatingsView
             drawArc(oval, 0F, 360F, true, bgPaint)
             drawArc(oval, 270f, -currentNum, false, arcPaint)
             drawText(
-                animatedRating.toString(),
-                oval.centerX(),
-                oval.centerY() + textBounds.height() / 2F,
-                textPaint
+                    animatedRating.toString(),
+                    oval.centerX(),
+                    oval.centerY() + textBounds.height() / 2F,
+                    textPaint
             )
         }
     }
@@ -269,13 +294,16 @@ class RatingsView
         if (animatorSet.isRunning)
             animatorSet.cancel()
 
-        arcAnimator = ValueAnimator.ofFloat(currentNum, 360 * rating * 0.01F)
-        arcAnimator.addUpdateListener { animator ->
-            currentNum = animator.animatedValue as Float
-            postInvalidate()
+        arcAnimator.apply {
+            setFloatValues(currentNum, 360 * rating * 0.01F)
+            addUpdateListener {
+                currentNum = animatedValue as Float
+                postInvalidate()
+            }
         }
 
-        numberAnimator = ValueAnimator.ofInt(animatedRating, rating).apply {
+        numberAnimator.apply {
+            setIntValues(animatedRating, rating)
             interpolator = FastOutSlowInInterpolator()
             addUpdateListener {
                 animatedRating = animatedValue as Int
@@ -287,7 +315,7 @@ class RatingsView
             }
         }
 
-        animatorSet = AnimatorSet().apply {
+        animatorSet.apply {
             duration = 1000
             interpolator = FastOutSlowInInterpolator()
             playTogether(arcAnimator, numberAnimator)
@@ -295,16 +323,18 @@ class RatingsView
         }
     }
 
+    private var arcColorAnimator = ValueAnimator()
+
     /**
      * Starts animating arc color to given color
      *
      * @param toColor color to animate to
      */
     private fun changeArcColor(toColor: Int) {
-        if (::colorAnimator.isInitialized && colorAnimator.isRunning)
-            colorAnimator.cancel()
+        if (arcColorAnimator.isRunning)
+            arcColorAnimator.cancel()
 
-        colorAnimator = ValueAnimator().apply {
+        arcColorAnimator.apply {
             setIntValues(arcPaint.color, toColor)
             setEvaluator(ArgbEvaluator())
             addUpdateListener {
@@ -315,11 +345,12 @@ class RatingsView
         }
     }
 
+    private var bgColorAnimator = ValueAnimator()
     private fun changeBgColor(toColor: Int) {
-        if (::bgColorAnimator.isInitialized && bgColorAnimator.isRunning)
+        if (bgColorAnimator.isRunning)
             bgColorAnimator.cancel()
 
-        bgColorAnimator = ValueAnimator().apply {
+        bgColorAnimator.apply {
             setIntValues(bgPaint.color, toColor)
             setEvaluator(ArgbEvaluator())
             addUpdateListener {
@@ -330,11 +361,12 @@ class RatingsView
         }
     }
 
+    private var textColorAnimator = ValueAnimator()
     private fun changeTextColor(toColor: Int) {
-        if (::textColorAnimator.isInitialized && textColorAnimator.isRunning)
+        if (textColorAnimator.isRunning)
             textColorAnimator.cancel()
 
-        textColorAnimator = ValueAnimator().apply {
+        textColorAnimator.apply {
             setIntValues(textPaint.color, toColor)
             setEvaluator(ArgbEvaluator())
             addUpdateListener {
@@ -349,14 +381,17 @@ class RatingsView
         return ((measuredWidth - paddingLeft - marginLeft - paddingRight - marginRight) * 0.35F) * forScale
     }
 
-    private lateinit var textSizeAnimator: ValueAnimator
+    private var textSizeAnimator = ValueAnimator()
     private fun changeRatingTextSize(toSize: Float, enableLongAnim: Boolean = false) {
-        if (::textSizeAnimator.isInitialized && textSizeAnimator.isRunning)
+        if (textSizeAnimator.isRunning)
             textSizeAnimator.cancel()
 
-        textSizeAnimator = ValueAnimator.ofFloat(textPaint.textSize, toSize).apply {
-            if (enableLongAnim)
-                duration = 1000
+        textSizeAnimator.apply {
+            setFloatValues(textPaint.textSize, toSize)
+            duration = if (enableLongAnim)
+                1000
+            else
+                300 // default
             addUpdateListener {
                 textPaint.apply {
                     textSize = animatedValue as Float
@@ -366,6 +401,23 @@ class RatingsView
             }
             start()
         }
+    }
 
+    private fun getStandardArcWidth(): Float = measuredWidth * 0.1F
+
+    private var arcWidthAnimator = ValueAnimator()
+    private fun changeArcWidth(toWidth: Float) {
+        if (arcWidthAnimator.isRunning)
+            arcWidthAnimator.cancel()
+
+        arcWidthAnimator.apply {
+            setFloatValues(arcPaint.strokeWidth, toWidth)
+
+            addUpdateListener {
+                arcPaint.strokeWidth = animatedValue as Float
+                postInvalidate()
+            }
+            start()
+        }
     }
 }
