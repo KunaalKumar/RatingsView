@@ -16,6 +16,7 @@ import androidx.core.view.marginTop
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import java.util.*
 import kotlin.collections.set
+import kotlin.math.max
 import kotlin.math.min
 
 /**
@@ -40,7 +41,7 @@ class RatingsView
      */
     var rating = 0
         set(value) {
-            field = value
+            field = max(0, min(value, 100))
             startAnimation()
         }
 
@@ -51,6 +52,8 @@ class RatingsView
     private lateinit var arcAnimator: ValueAnimator
     private lateinit var numberAnimator: ValueAnimator
     private lateinit var colorAnimator: ValueAnimator
+    private lateinit var bgColorAnimator: ValueAnimator
+    private lateinit var textColorAnimator: ValueAnimator
     private var animatorSet = AnimatorSet()
 
     private var arcPaint = Paint()
@@ -69,6 +72,37 @@ class RatingsView
     private val colorRangeMap = TreeMap<Int, Int>()
 
     /**
+     * Changes default background color
+     *
+     * @param color color to set background to
+     */
+    fun setBgColor(color: Int) {
+        bgColor = color
+        changeBgColor(color)
+    }
+
+    /**
+     * Changes default arc color
+     * If threshold colors are enabled, this will be override on next update
+     *
+     * @param color color to set arc to
+     */
+    fun setArcColor(color: Int) {
+        arcColor = color
+        changeArcColor(color)
+    }
+
+    /**
+     * Changes default text color
+     *
+     * @param color color to set text to
+     */
+    fun setTextColor(color: Int) {
+        textColor = color
+        changeTextColor(color)
+    }
+
+    /**
      * Adds the arc color to be displayed within the given threshold.
      * To change color, simply override the threshold
      *
@@ -83,7 +117,7 @@ class RatingsView
         if (threshold != 0 && !colorRangeMap.containsKey(0))
             colorRangeMap[0] = arcColor
         colorRangeMap[threshold] = color
-        startColorAnimation(colorRangeMap.floorEntry(rating)!!.value)
+        changeArcColor(colorRangeMap.floorEntry(rating)!!.value)
         postInvalidate()
     }
 
@@ -97,7 +131,7 @@ class RatingsView
         if (!map.containsKey(0))
             colorRangeMap[0] = arcColor
         colorRangeMap.putAll(map)
-        startColorAnimation(colorRangeMap.floorEntry(rating)!!.value)
+        changeArcColor(colorRangeMap.floorEntry(rating)!!.value)
         postInvalidate()
     }
 
@@ -114,9 +148,9 @@ class RatingsView
 
         colorRangeMap.remove(threshold)
         if (colorRangeMap.isEmpty())
-            startColorAnimation(arcColor)
+            changeArcColor(arcColor)
         else
-            startColorAnimation(colorRangeMap.floorEntry(rating)!!.value)
+            changeArcColor(colorRangeMap.floorEntry(rating)!!.value)
         postInvalidate()
     }
 
@@ -126,7 +160,7 @@ class RatingsView
      */
     fun removeAllArcThresholdColor() {
         colorRangeMap.clear()
-        startColorAnimation(arcColor)
+        changeArcColor(arcColor)
         postInvalidate()
     }
 
@@ -229,7 +263,7 @@ class RatingsView
                 animatedRating = animatedValue as Int
                 if (colorRangeMap.isNotEmpty() && colorRangeMap.floorKey(animatedRating)!! != lastColor) {
                     lastColor = colorRangeMap.floorKey(animatedRating)
-                    startColorAnimation(colorRangeMap[lastColor]!!)
+                    changeArcColor(colorRangeMap[lastColor]!!)
                 }
                 postInvalidate()
             }
@@ -248,7 +282,7 @@ class RatingsView
      *
      * @param toColor color to animate to
      */
-    private fun startColorAnimation(toColor: Int) {
+    private fun changeArcColor(toColor: Int) {
         if (::colorAnimator.isInitialized && colorAnimator.isRunning)
             colorAnimator.cancel()
 
@@ -257,6 +291,36 @@ class RatingsView
             setEvaluator(ArgbEvaluator())
             addUpdateListener {
                 arcPaint.color = animatedValue as Int
+                postInvalidate()
+            }
+            start()
+        }
+    }
+
+    private fun changeBgColor(toColor: Int) {
+        if (::bgColorAnimator.isInitialized && bgColorAnimator.isRunning)
+            bgColorAnimator.cancel()
+
+        bgColorAnimator = ValueAnimator().apply {
+            setIntValues(bgPaint.color, toColor)
+            setEvaluator(ArgbEvaluator())
+            addUpdateListener {
+                bgPaint.color = animatedValue as Int
+                postInvalidate()
+            }
+            start()
+        }
+    }
+
+    private fun changeTextColor(toColor: Int) {
+        if (::textColorAnimator.isInitialized && textColorAnimator.isRunning)
+            textColorAnimator.cancel()
+
+        textColorAnimator = ValueAnimator().apply {
+            setIntValues(textPaint.color, toColor)
+            setEvaluator(ArgbEvaluator())
+            addUpdateListener {
+                textPaint.color = animatedValue as Int
                 postInvalidate()
             }
             start()

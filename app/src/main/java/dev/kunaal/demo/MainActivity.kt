@@ -1,9 +1,11 @@
 package dev.kunaal.demo
 
+import android.graphics.Color
 import android.os.Bundle
 import android.widget.SeekBar
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
+import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
@@ -20,20 +22,13 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         // Initial value for demo purposes
-        seekbar.progress = 85
+        seekbar.progress = (0..100).random()
         ratings_view.rating = seekbar.progress
 
-        button.setOnClickListener {
-            if (!enableThresholdColors) {
-                enableThresholdColors = true
-                button.text = "Disable Colors"
-                ratings_view.addArcThresholdColor(thresholdColorsMap)
-            } else {
-                enableThresholdColors = false
-                button.text = "Enable Colors"
-                ratings_view.removeAllArcThresholdColor()
-            }
-        }
+        setupThresholdColorsButton()
+        setupBgButton()
+        setupArcColorButton()
+        setupTextColorButton()
 
         seekbar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
@@ -46,5 +41,42 @@ class MainActivity : AppCompatActivity() {
                 ratings_view.rating = seekbar.progress
             }
         })
+    }
+
+    private fun setupThresholdColorsButton() {
+        button.setOnClickListener {
+            if (!enableThresholdColors) {
+                enableThresholdColors = true
+                button.text = "Disable Threshold Colors"
+                ratings_view.addArcThresholdColor(thresholdColorsMap)
+            } else {
+                enableThresholdColors = false
+                button.text = "Enable Threshold Colors"
+                ratings_view.removeAllArcThresholdColor()
+            }
+        }
+    }
+
+    private fun setupBgButton() {
+        bg_button.setOnClickListener {
+            ratings_view.setBgColor(getRandomColor())
+        }
+    }
+
+    private fun setupArcColorButton() {
+        arc_color_button.setOnClickListener {
+            ratings_view.setArcColor(getRandomColor())
+        }
+    }
+
+    private fun setupTextColorButton() {
+        text_color_button.setOnClickListener {
+            ratings_view.setTextColor(getRandomColor())
+        }
+    }
+
+    private fun getRandomColor(): Int {
+        val rnd = Random()
+        return Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256))
     }
 }

@@ -25,16 +25,47 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/ratings_view"
-        app:layout_constraintBottom_toTopOf="@id/button" />
+        app:layout_constraintBottom_toTopOf="@id/bg_button" />
+
+    <Button
+        android:id="@+id/bg_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Change Background Color"
+        app:layout_constraintBottom_toTopOf="@id/arc_color_button"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/seekbar" />
+
+    <Button
+        android:id="@+id/arc_color_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Change Arc Color"
+        app:layout_constraintBottom_toTopOf="@id/text_color_button"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/bg_button" />
+
+    <Button
+        android:id="@+id/text_color_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Change Text Color"
+        app:layout_constraintBottom_toTopOf="@id/button"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/arc_color_button" />
 
     <Button
         android:id="@+id/button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Enable Colors"
+        android:text="Enable threshold colors"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/seekbar" />
+        app:layout_constraintTop_toBottomOf="@id/text_color_button" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
