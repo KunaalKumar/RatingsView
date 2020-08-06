@@ -21,9 +21,11 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Initial value for demo purposes
-        progress_seekbar.progress = (25..100).random()
-        ratings_view.rating = progress_seekbar.progress
+        if(savedInstanceState == null) {
+            // Initial value for demo purposes
+            progress_seekbar.progress = (25..100).random()
+            ratings_view.rating = progress_seekbar.progress
+        }
 
         setupThresholdColorsButton()
         setupBgButton()

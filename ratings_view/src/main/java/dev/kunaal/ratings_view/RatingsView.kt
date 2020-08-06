@@ -5,6 +5,7 @@ import android.animation.ArgbEvaluator
 import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.*
+import android.os.Parcelable
 import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.View
@@ -39,7 +40,7 @@ class RatingsView
 
     private var arcPaint = Paint()
     private var arcColor: Int = ContextCompat.getColor(context, android.R.color.black)
-    private var arcWidth = 0F
+    private var arcWidthScale = 0.1F
     private val oval = RectF(0F, 0F, width.toFloat(), height.toFloat())
 
     private var bgPaint = Paint()
@@ -174,18 +175,8 @@ class RatingsView
      * @param scale number to scale arc width by
      */
     fun setArcWidthScale(scale: Float) {
-        arcWidth = max(0F, getStandardArcWidth() * scale)
-        changeArcWidth(arcWidth)
-    }
-
-    /**
-     * Sets arc width independent of view width
-     *
-     * @param width number in px of arc width
-     */
-    fun setArcWidth(width: Float) {
-        arcWidth = width
-        changeArcWidth(arcWidth)
+        arcWidthScale = scale
+        changeArcWidth(arcWidthScale)
     }
 
     /*********************************** Private **********************************/
@@ -207,15 +198,23 @@ class RatingsView
             bgColor = array.getColor(R.styleable.RatingsView_bgColor, defaultBgColor)
             textColor = array.getColor(R.styleable.RatingsView_textColor, primaryColor)
             doOnNextLayout {
-                changeRatingTextSize(
+                if(textScale == 0F)
+                    changeRatingTextSize(
                         getRatingTextSize(array.getFloat(R.styleable.RatingsView_textScale, 1F)),
                         true
-                )
+                    )
+                else
+                    changeRatingTextSize(
+                        getRatingTextSize(textScale),
+                        true
+                    )
 
-                arcWidth = getStandardArcWidth() *
-                        array.getFloat(R.styleable.RatingsView_arcWidthScale, getStandardArcWidth())
+                // Get arcWidthScale from attribute, if nothing to restore
+                if(arcWidthScale == 0.1F)
+                    arcWidthScale =
+                        array.getFloat(R.styleable.RatingsView_arcWidthScale, arcWidthScale)
 
-                changeArcWidth(arcWidth)
+                changeArcWidth(arcWidthScale)
                 array.recycle()
             }
         }
@@ -227,16 +226,16 @@ class RatingsView
         super.onLayout(changed, left, top, right, bottom)
 
         oval.set(
-                paddingLeft + marginLeft.toFloat(),
-                paddingTop + marginTop.toFloat(),
-                measuredWidth.toFloat() - paddingRight - marginRight,
-                measuredHeight.toFloat() - paddingBottom - marginBottom
+            paddingLeft + marginLeft.toFloat(),
+            paddingTop + marginTop.toFloat(),
+            measuredWidth.toFloat() - paddingRight - marginRight,
+            measuredHeight.toFloat() - paddingBottom - marginBottom
         )
 
         arcPaint.apply {
             isAntiAlias = true
             color = arcColor
-            strokeWidth = arcWidth
+            strokeWidth = getStandardArcWidth() * arcWidthScale
             strokeCap = Paint.Cap.ROUND
             style = Paint.Style.STROKE
         }
@@ -249,7 +248,7 @@ class RatingsView
         textPaint.apply {
             isAntiAlias = true
             color = textColor
-            textSize = getRatingTextSize(0F)
+            textSize = getRatingTextSize(textScale)
             textAlign = Paint.Align.CENTER
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             getTextBounds(rating.toString(), 0, rating.toString().length, textBounds)
@@ -263,10 +262,10 @@ class RatingsView
             drawArc(oval, 0F, 360F, true, bgPaint)
             drawArc(oval, 270f, -currentNum, false, arcPaint)
             drawText(
-                    animatedRating.toString(),
-                    oval.centerX(),
-                    oval.centerY() + textBounds.height() / 2F,
-                    textPaint
+                animatedRating.toString(),
+                oval.centerX(),
+                oval.centerY() + textBounds.height() / 2F,
+                textPaint
             )
         }
     }
@@ -284,6 +283,31 @@ class RatingsView
         super.onDetachedFromWindow()
         arcAnimator.removeAllUpdateListeners()
         numberAnimator.removeAllUpdateListeners()
+    }
+
+    override fun onSaveInstanceState(): Parcelable? {
+        val viewState = SavedState(super.onSaveInstanceState())
+        viewState.rating = rating
+        viewState.arcColor = arcColor
+        viewState.arcWidthScale = arcWidthScale
+        viewState.bgColor = bgColor
+        viewState.textColor = textColor
+        viewState.textScale = textScale
+        return viewState
+    }
+
+    override fun onRestoreInstanceState(state: Parcelable?) {
+        val savedState = (state as SavedState)
+        super.onRestoreInstanceState(savedState.superState)
+
+        rating = savedState.rating
+        arcColor = savedState.arcColor
+        arcWidthScale = savedState.arcWidthScale
+        bgColor = savedState.bgColor
+        textColor = savedState.textColor
+        textScale = savedState.textScale
+
+        requestLayout()
     }
 
     /**
@@ -406,12 +430,12 @@ class RatingsView
     private fun getStandardArcWidth(): Float = measuredWidth * 0.1F
 
     private var arcWidthAnimator = ValueAnimator()
-    private fun changeArcWidth(toWidth: Float) {
+    private fun changeArcWidth(withScale: Float) {
         if (arcWidthAnimator.isRunning)
             arcWidthAnimator.cancel()
 
         arcWidthAnimator.apply {
-            setFloatValues(arcPaint.strokeWidth, toWidth)
+            setFloatValues(arcPaint.strokeWidth, max(0F, getStandardArcWidth() * withScale))
 
             addUpdateListener {
                 arcPaint.strokeWidth = animatedValue as Float
