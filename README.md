@@ -2,10 +2,10 @@
 An android custom view to show ratings
 
 [![API](https://img.shields.io/badge/API-16%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=16)
-[ ![Download](https://api.bintray.com/packages/kunaalkumar/ratings-view/dev.kunaal:ratings_view/images/download.svg?version=0.0.6) ](https://bintray.com/kunaalkumar/ratings-view/dev.kunaal:ratings_view/0.0.6/link)
+[ ![Download](https://api.bintray.com/packages/kunaalkumar/ratings-view/dev.kunaal:ratings_view/images/download.svg?version=0.0.7) ](https://bintray.com/kunaalkumar/ratings-view/dev.kunaal:ratings_view/0.0.7/link)
 [![Generic badge](https://img.shields.io/badge/Documentation-important.svg)](https://kunaalkumar.github.io/RatingsView/ratings_view/dev.kunaal.ratings_view/-ratings-view/index.html)
 
-<img align="right" src="static/preview.gif" alt="sample" title="sample" width="30%" />
+<img align="right" src="static/preview.gif" alt="sample" title="sample" width="30%" hspace="1%" />
 
 ## Dependency
 Add this to your module `build.gradle`:
