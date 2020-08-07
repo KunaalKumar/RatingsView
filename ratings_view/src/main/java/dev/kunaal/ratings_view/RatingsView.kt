@@ -225,12 +225,12 @@ class RatingsView
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
 
-        oval.set(
-            paddingLeft + marginLeft.toFloat(),
-            paddingTop + marginTop.toFloat(),
-            measuredWidth.toFloat() - paddingRight - marginRight,
-            measuredHeight.toFloat() - paddingBottom - marginBottom
-        )
+        val topPoint = (width / 2F) - (measuredWidth / 2F)
+        val botPoint = (height / 2F) - (measuredHeight / 2F)
+        oval.set(topPoint + paddingLeft + marginLeft,
+                botPoint + paddingTop + marginTop,
+                topPoint + measuredWidth - paddingRight - marginRight,
+                botPoint + measuredHeight - paddingBottom - marginBottom)
 
         arcPaint.apply {
             isAntiAlias = true
@@ -262,10 +262,10 @@ class RatingsView
             drawArc(oval, 0F, 360F, true, bgPaint)
             drawArc(oval, 270f, -currentNum, false, arcPaint)
             drawText(
-                animatedRating.toString(),
-                oval.centerX(),
-                oval.centerY() + textBounds.height() / 2F,
-                textPaint
+                    animatedRating.toString(),
+                    oval.centerX(),
+                    oval.centerY() + textBounds.height() / 2F,
+                    textPaint
             )
         }
     }
@@ -274,7 +274,7 @@ class RatingsView
         val widthSize = MeasureSpec.getSize(widthMeasureSpec)
         val heightSize = MeasureSpec.getSize(heightMeasureSpec)
         val size = min(widthSize, heightSize)
-        val paddingSize = (size * 0.1).toInt()
+        val paddingSize = (size * 0.125).toInt()
         setPadding(paddingSize, paddingSize, paddingSize, paddingSize)
         setMeasuredDimension(size, size)
     }
@@ -402,7 +402,7 @@ class RatingsView
     }
 
     private fun getRatingTextSize(forScale: Float): Float {
-        return ((measuredWidth - paddingLeft - marginLeft - paddingRight - marginRight) * 0.35F) * forScale
+        return ((measuredWidth - paddingLeft - marginLeft - paddingRight - marginRight) * 0.3F) * forScale
     }
 
     private var textSizeAnimator = ValueAnimator()
