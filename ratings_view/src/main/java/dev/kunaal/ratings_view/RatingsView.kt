@@ -27,7 +27,9 @@ import kotlin.math.min
  * @param defStyleAttr
  */
 class RatingsView
-@JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0)
+@JvmOverloads constructor(context: Context,
+                          attrs: AttributeSet? = null,
+                          defStyleAttr: Int = 0)
     : View(context, attrs, defStyleAttr) {
 
     private var animatedRating = 0
@@ -40,7 +42,7 @@ class RatingsView
 
     private var arcPaint = Paint()
     private var arcColor: Int = ContextCompat.getColor(context, android.R.color.black)
-    private var arcWidthScale = 0.1F
+    private var arcWidthScale = 1F
     private val oval = RectF(0F, 0F, width.toFloat(), height.toFloat())
 
     private var bgPaint = Paint()
@@ -51,8 +53,7 @@ class RatingsView
     private var textColor: Int = ContextCompat.getColor(context, android.R.color.black)
 
     // Color ranges map indicating the color to be displayed at percent
-    private val colorRangeMap = TreeMap<Int, Int>()
-
+    private var colorRangeMap = TreeMap<Int, Int>()
 
     /**
      * Rating number to display.
@@ -73,7 +74,7 @@ class RatingsView
      * Number should be between 0F - 2F
      * Setting the scale will automatically update view.
      */
-    var textScale: Float = 0F
+    var textScale: Float = 1F
         set(value) {
             field = max(0F, min(value, 2F))
             changeRatingTextSize(getRatingTextSize(field))
@@ -170,7 +171,7 @@ class RatingsView
 
     /**
      * Scales arc width based on view width
-     * Default scale value is 0.1F
+     * Default scale value is 1F
      *
      * @param scale number to scale arc width by
      */
@@ -200,19 +201,19 @@ class RatingsView
             doOnNextLayout {
                 if(textScale == 0F)
                     changeRatingTextSize(
-                        getRatingTextSize(array.getFloat(R.styleable.RatingsView_textScale, 1F)),
-                        true
+                            getRatingTextSize(array.getFloat(R.styleable.RatingsView_textScale, 1F)),
+                            true
                     )
                 else
                     changeRatingTextSize(
-                        getRatingTextSize(textScale),
-                        true
+                            getRatingTextSize(textScale),
+                            true
                     )
 
                 // Get arcWidthScale from attribute, if nothing to restore
-                if(arcWidthScale == 0.1F)
+                if(arcWidthScale == 1F)
                     arcWidthScale =
-                        array.getFloat(R.styleable.RatingsView_arcWidthScale, arcWidthScale)
+                            array.getFloat(R.styleable.RatingsView_arcWidthScale, arcWidthScale)
 
                 changeArcWidth(arcWidthScale)
                 array.recycle()
@@ -293,6 +294,7 @@ class RatingsView
         viewState.bgColor = bgColor
         viewState.textColor = textColor
         viewState.textScale = textScale
+        viewState.thresholdColorsMap = colorRangeMap
         return viewState
     }
 
@@ -306,6 +308,11 @@ class RatingsView
         bgColor = savedState.bgColor
         textColor = savedState.textColor
         textScale = savedState.textScale
+        colorRangeMap = savedState.thresholdColorsMap as TreeMap<Int, Int>
+
+        // Apply first color from colorRangeMap to avoid starting color from default one
+        if(colorRangeMap.isNotEmpty())
+            arcColor = colorRangeMap[0]!!
 
         requestLayout()
     }
@@ -402,7 +409,7 @@ class RatingsView
     }
 
     private fun getRatingTextSize(forScale: Float): Float {
-        return ((measuredWidth - paddingLeft - marginLeft - paddingRight - marginRight) * 0.3F) * forScale
+        return ((measuredWidth - paddingLeft - marginLeft - paddingRight - marginRight) * 0.4F) * forScale
     }
 
     private var textSizeAnimator = ValueAnimator()

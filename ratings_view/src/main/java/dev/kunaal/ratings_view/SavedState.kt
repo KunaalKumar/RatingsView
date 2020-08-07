@@ -3,6 +3,7 @@ package dev.kunaal.ratings_view
 import android.os.Parcel
 import android.os.Parcelable
 import android.view.View
+import java.io.Serializable
 
 class SavedState : View.BaseSavedState {
     var rating = 0
@@ -11,6 +12,7 @@ class SavedState : View.BaseSavedState {
     var bgColor = 0
     var textColor = 0
     var textScale = 0F
+    var thresholdColorsMap = emptyMap<Int, Int>()
 
     companion object {
         @JvmField val CREATOR: Parcelable.Creator<SavedState> = object : Parcelable.Creator<SavedState> {
@@ -28,6 +30,7 @@ class SavedState : View.BaseSavedState {
         bgColor = parcel.readInt()
         textColor = parcel.readInt()
         textScale = parcel.readFloat()
+        thresholdColorsMap = parcel.readSerializable() as Map<Int, Int>
     }
 
     override fun writeToParcel(out: Parcel, flags: Int) {
@@ -38,5 +41,6 @@ class SavedState : View.BaseSavedState {
         out.writeInt(bgColor)
         out.writeInt(textColor)
         out.writeFloat(textScale)
+        out.writeSerializable(thresholdColorsMap as Serializable)
     }
 }

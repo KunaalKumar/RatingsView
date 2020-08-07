@@ -10,7 +10,7 @@ import java.util.*
 class MainActivity : AppCompatActivity() {
 
     private var enableThresholdColors = false
-    private val thresholdColorsMap = mapOf<Int, Int>(
+    private var thresholdColorsMap = mapOf<Int, Int>(
             0 to 0xFFf44336.toInt(),
             35 to 0xFFffa726.toInt(),
             50 to 0xFFffeb3b.toInt(),

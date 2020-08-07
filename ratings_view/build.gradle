@@ -4,7 +4,7 @@ apply plugin: 'com.jfrog.bintray'
 apply plugin: 'maven-publish'
 apply plugin: "org.jetbrains.dokka"
 
-def versionIdentifier = "0.0.6"
+def versionIdentifier = "0.0.7"
 
 android {
     compileSdkVersion 29
