@@ -36,6 +36,10 @@ class MainActivity : AppCompatActivity() {
         setupTextScaleSeekBar()
         setupArcWidthSeekbar()
 
+        ratings_view.setOnClickListener {
+            ratings_view.toggleLoadingAnimation()
+        }
+
     }
 
     private fun setupProgressSeekBar() {

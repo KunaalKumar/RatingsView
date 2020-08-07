@@ -9,6 +9,8 @@ import android.os.Parcelable
 import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.View
+import android.view.animation.LinearInterpolator
+import androidx.core.animation.doOnEnd
 import androidx.core.content.ContextCompat
 import androidx.core.view.*
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
@@ -32,28 +34,40 @@ class RatingsView
                           defStyleAttr: Int = 0)
     : View(context, attrs, defStyleAttr) {
 
+    private var primaryColor: Int = 0
+
     private var animatedRating = 0
-    private var currentNum = 0F
+    private var currenArcLength = 0F
 
+    // Arc
     private var lastColor = 0
-    private var arcAnimator = ValueAnimator()
-    private var numberAnimator = ValueAnimator()
-    private var animatorSet = AnimatorSet()
-
     private var arcPaint = Paint()
     private var arcColor: Int = ContextCompat.getColor(context, android.R.color.black)
     private var arcWidthScale = 1F
     private val oval = RectF(0F, 0F, width.toFloat(), height.toFloat())
 
+    // Bg
     private var bgPaint = Paint()
     private var bgColor: Int = ContextCompat.getColor(context, android.R.color.black)
 
+    // Text
     private var textBounds = Rect()
     private val textPaint = Paint()
     private var textColor: Int = ContextCompat.getColor(context, android.R.color.black)
 
     // Color ranges map indicating the color to be displayed at percent
     private var colorRangeMap = TreeMap<Int, Int>()
+
+    // Animation
+    private var arcAnimator = ValueAnimator()
+    private var numberAnimator = ValueAnimator()
+    private var primaryAnimatorSet = AnimatorSet()
+
+    // Loading
+    private var isLoading = false
+    private var loadingAnimSet = AnimatorSet()
+    private var loadingAngleAnimator = ValueAnimator()
+    private var loadingLengthAnimator = ValueAnimator()
 
     /**
      * Rating number to display.
@@ -65,7 +79,8 @@ class RatingsView
     var rating = 0
         set(value) {
             field = max(0, min(value, 100))
-            startAnimation()
+            if (!isLoading)
+                startAnimation()
         }
 
     /**
@@ -162,7 +177,6 @@ class RatingsView
 
     /**
      * Removes all threshold colors for the arc
-     *
      */
     fun removeAllArcThresholdColor() {
         colorRangeMap.clear()
@@ -180,6 +194,125 @@ class RatingsView
         changeArcWidth(arcWidthScale)
     }
 
+    /**
+     * Toggles loading animation based on current loading state.
+     *
+     * If current state is not `loading`, startLoadingAnimation() is called
+     * @see dev.kunaal.ratings_view.RatingsView.startLoadingAnimation
+     *
+     * If current state is `loading`, stopLoadingAnimation() is called
+     * @see dev.kunaal.ratings_view.RatingsView.stopLoadingAnimation
+     *
+     */
+    fun toggleLoadingAnimation() {
+        if (isLoading)
+            stopLoadingAnimation()
+        else
+            startLoadingAnimation()
+    }
+
+    private val resetArcLengthAnimator = ValueAnimator()
+
+    /**
+     * Starts loading animation and hides rating number
+     */
+    fun startLoadingAnimation() {
+        if (loadingAnimSet.isRunning)
+            loadingAnimSet.cancel()
+
+        isLoading = true
+
+        arcPaint.color = primaryColor
+
+        resetArcLengthAnimator.apply {
+            setFloatValues(currenArcLength, 25F)
+            addUpdateListener {
+                currenArcLength = animatedValue as Float
+                postInvalidate()
+            }
+        }
+
+        loadingAngleAnimator.apply {
+            repeatCount = ValueAnimator.INFINITE
+            repeatMode = ValueAnimator.RESTART
+            setFloatValues(startAngle, startAngle + 360F)
+            addUpdateListener {
+                startAngle = animatedValue as Float
+                postInvalidate()
+            }
+        }
+
+        loadingLengthAnimator.apply {
+            repeatCount = ValueAnimator.INFINITE
+            repeatMode = ValueAnimator.REVERSE
+            setFloatValues(25F, 150F)
+            addUpdateListener {
+                currenArcLength = animatedValue as Float
+                postInvalidate()
+            }
+        }
+
+        loadingAnimSet.apply {
+            duration = 500
+            interpolator = LinearInterpolator()
+            play(resetArcLengthAnimator)
+                    .before(loadingAngleAnimator)
+            play(loadingAngleAnimator)
+                    .with(loadingLengthAnimator)
+            start()
+        }
+    }
+
+    private val stopLoadingAnimSet = AnimatorSet()
+    private val stopLoadingAngleAnimator = ValueAnimator()
+    private val stopLoadingArcLengthAnimator = ValueAnimator()
+
+    /**
+     * Stops loading animation and restores rating value and state
+     */
+    fun stopLoadingAnimation() {
+        if (loadingAnimSet.isRunning)
+            loadingAnimSet.cancel()
+
+        if (stopLoadingAnimSet.isRunning) {
+            stopLoadingAnimSet.removeAllListeners()
+            stopLoadingAnimSet.cancel()
+        }
+
+
+        stopLoadingAngleAnimator.apply {
+            repeatCount = 0
+            setFloatValues(startAngle, 270F)
+            addUpdateListener {
+                startAngle = animatedValue as Float
+                postInvalidate()
+            }
+        }
+
+        stopLoadingArcLengthAnimator.apply {
+            repeatCount = 0
+            setFloatValues(currenArcLength, 1F)
+            addUpdateListener {
+                currenArcLength = animatedValue as Float
+                postInvalidate()
+            }
+        }
+
+        stopLoadingAnimSet.apply {
+            duration - 500
+            play(stopLoadingAngleAnimator)
+                    .with(stopLoadingArcLengthAnimator)
+            start()
+            doOnEnd {
+                isLoading = false
+                removeAllListeners()
+                if (colorRangeMap.isNotEmpty())
+                    arcPaint.color = colorRangeMap[0]!!
+                startAnimation()
+            }
+        }
+    }
+
     /*********************************** Private **********************************/
 
     init {
@@ -187,7 +320,7 @@ class RatingsView
 
         val primValue = TypedValue()
         context.theme.resolveAttribute(R.attr.colorPrimary, primValue, true)
-        val primaryColor = primValue.data
+        primaryColor = primValue.data
 
         val bgValue = TypedValue()
         context.theme.resolveAttribute(R.attr.background, primValue, true)
@@ -256,18 +389,23 @@ class RatingsView
         }
     }
 
+    private var startAngle = 270F
+
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
         with(canvas) {
             drawArc(oval, 0F, 360F, true, bgPaint)
-            drawArc(oval, 270f, -currentNum, false, arcPaint)
-            drawText(
-                    animatedRating.toString(),
-                    oval.centerX(),
-                    oval.centerY() + textBounds.height() / 2F,
-                    textPaint
-            )
+            drawArc(oval, startAngle, -currenArcLength, false, arcPaint)
+            if (!isLoading)
+                drawText(
+                        animatedRating.toString(),
+                        oval.centerX(),
+                        oval.centerY() + textBounds.height() / 2F,
+                        textPaint
+                )
+            else
+                animatedRating = 0
         }
     }
 
@@ -322,13 +460,13 @@ class RatingsView
      * Number animation also calls startColorAnimation() if required
      */
     private fun startAnimation() {
-        if (animatorSet.isRunning)
-            animatorSet.cancel()
+        if (primaryAnimatorSet.isRunning)
+            primaryAnimatorSet.cancel()
 
         arcAnimator.apply {
-            setFloatValues(currentNum, 360 * rating * 0.01F)
+            setFloatValues(currenArcLength, 360 * rating * 0.01F)
             addUpdateListener {
-                currentNum = animatedValue as Float
+                currenArcLength = animatedValue as Float
                 postInvalidate()
             }
         }
@@ -346,7 +484,7 @@ class RatingsView
             }
         }
 
-        animatorSet.apply {
+        primaryAnimatorSet.apply {
             duration = 1000
             interpolator = FastOutSlowInInterpolator()
             playTogether(arcAnimator, numberAnimator)
@@ -362,6 +500,8 @@ class RatingsView
      * @param toColor color to animate to
      */
     private fun changeArcColor(toColor: Int) {
+        if (isLoading)
+            return
         if (arcColorAnimator.isRunning)
             arcColorAnimator.cancel()
 
