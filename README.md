@@ -11,7 +11,7 @@ An android custom view to show ratings
 Add this to your module `build.gradle`:
 ```gradle
 dependencies {
-    implementation 'implementation 'dev.kunaal:RatingsView:0.0.6'
+    implementation 'dev.kunaal:ratings_view:0.0.7'
 }
 ```
 
