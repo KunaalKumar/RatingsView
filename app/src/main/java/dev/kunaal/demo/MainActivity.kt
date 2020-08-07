@@ -2,10 +2,14 @@ package dev.kunaal.demo
 
 import android.graphics.Color
 import android.os.Bundle
+import android.text.SpannableStringBuilder
+import android.view.KeyEvent
 import android.widget.SeekBar
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
 import java.util.*
+import kotlin.math.max
+import kotlin.math.min
 
 class MainActivity : AppCompatActivity() {
 
@@ -23,8 +27,8 @@ class MainActivity : AppCompatActivity() {
 
         if (savedInstanceState == null) {
             // Initial value for demo purposes
-            progress_seekbar.progress = (25..100).random()
-            ratings_view.rating = progress_seekbar.progress
+            rating_seekbar.progress = (25..100).random()
+            ratings_view.rating = rating_seekbar.progress
         } else {
             thresholdColorsEnabled = savedInstanceState.getBoolean("thresholdColorsEnabled")
             if (thresholdColorsEnabled)
@@ -32,11 +36,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         setupThresholdColorsButton()
-        setupBgButton()
+        setupBgViews()
         setupArcColorButton()
         setupTextColorButton()
 
-        setupProgressSeekBar()
+        setupRatingViews()
         setupTextScaleSeekBar()
         setupArcWidthSeekbar()
 
@@ -46,14 +50,25 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    private fun setupProgressSeekBar() {
-        progress_seekbar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+    private fun setupRatingViews() {
+
+        rating_picker.setOnKeyListener { v, keyCode, event ->
+            if (keyCode == KeyEvent.KEYCODE_ENTER) {
+                rating_seekbar.progress = min(100, max(0, rating_picker.text.toString().toInt()))
+                rating_picker.text = SpannableStringBuilder(rating_seekbar.progress.toString())
+                ratings_view.rating = rating_seekbar.progress
+            }
+            false
+        }
+
+        rating_seekbar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {}
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
 
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
                 ratings_view.rating = seekBar!!.progress
+                rating_picker.text = SpannableStringBuilder(seekBar.progress.toString())
             }
         })
     }
@@ -96,9 +111,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun setupBgButton() {
+    private fun setupBgViews() {
         bg_button.setOnClickListener {
             ratings_view.setBgColor(getRandomColor())
+        }
+
+        clear_bg_button.setOnClickListener {
+            ratings_view.setBgColor(android.R.color.transparent)
         }
     }
 
