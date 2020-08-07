@@ -9,7 +9,7 @@ import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
-    private var enableThresholdColors = false
+    private var thresholdColorsEnabled = false
     private var thresholdColorsMap = mapOf<Int, Int>(
             0 to 0xFFf44336.toInt(),
             35 to 0xFFffa726.toInt(),
@@ -21,10 +21,14 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        if(savedInstanceState == null) {
+        if (savedInstanceState == null) {
             // Initial value for demo purposes
             progress_seekbar.progress = (25..100).random()
             ratings_view.rating = progress_seekbar.progress
+        } else {
+            thresholdColorsEnabled = savedInstanceState.getBoolean("thresholdColorsEnabled")
+            if (thresholdColorsEnabled)
+                button.text = "Disable Threshold Colors"
         }
 
         setupThresholdColorsButton()
@@ -80,12 +84,12 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupThresholdColorsButton() {
         button.setOnClickListener {
-            if (!enableThresholdColors) {
-                enableThresholdColors = true
+            if (!thresholdColorsEnabled) {
+                thresholdColorsEnabled = true
                 button.text = "Disable Threshold Colors"
                 ratings_view.addArcThresholdColor(thresholdColorsMap)
             } else {
-                enableThresholdColors = false
+                thresholdColorsEnabled = false
                 button.text = "Enable Threshold Colors"
                 ratings_view.removeAllArcThresholdColor()
             }
@@ -113,5 +117,10 @@ class MainActivity : AppCompatActivity() {
     private fun getRandomColor(): Int {
         val rnd = Random()
         return Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256))
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean("thresholdColorsEnabled", thresholdColorsEnabled)
     }
 }

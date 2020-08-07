@@ -13,10 +13,14 @@ class SavedState : View.BaseSavedState {
     var textColor = 0
     var textScale = 0F
     var thresholdColorsMap = emptyMap<Int, Int>()
+    var isLoading = 0
+    var startAngle = 0F
+    var currentArcLength = 0F
 
     companion object {
-        @JvmField val CREATOR: Parcelable.Creator<SavedState> = object : Parcelable.Creator<SavedState> {
-            override fun createFromParcel(source: Parcel): SavedState= SavedState(source)
+        @JvmField
+        val CREATOR: Parcelable.Creator<SavedState> = object : Parcelable.Creator<SavedState> {
+            override fun createFromParcel(source: Parcel): SavedState = SavedState(source)
             override fun newArray(size: Int): Array<SavedState?> = arrayOfNulls(size)
         }
     }
@@ -31,6 +35,9 @@ class SavedState : View.BaseSavedState {
         textColor = parcel.readInt()
         textScale = parcel.readFloat()
         thresholdColorsMap = parcel.readSerializable() as Map<Int, Int>
+        isLoading = parcel.readInt()
+        startAngle = parcel.readFloat()
+        currentArcLength = parcel.readFloat()
     }
 
     override fun writeToParcel(out: Parcel, flags: Int) {
@@ -42,5 +49,8 @@ class SavedState : View.BaseSavedState {
         out.writeInt(textColor)
         out.writeFloat(textScale)
         out.writeSerializable(thresholdColorsMap as Serializable)
+        out.writeInt(isLoading)
+        out.writeFloat(startAngle)
+        out.writeFloat(currentArcLength)
     }
 }

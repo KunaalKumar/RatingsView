@@ -37,7 +37,7 @@ class RatingsView
     private var primaryColor: Int = 0
 
     private var animatedRating = 0
-    private var currenArcLength = 0F
+    private var currentArcLength = 0F
 
     // Arc
     private var lastColor = 0
@@ -68,6 +68,8 @@ class RatingsView
     private var loadingAnimSet = AnimatorSet()
     private var loadingAngleAnimator = ValueAnimator()
     private var loadingLengthAnimator = ValueAnimator()
+    private val loadingOval = RectF()
+    private val loadingPaint = Paint()
 
     /**
      * Rating number to display.
@@ -220,24 +222,24 @@ class RatingsView
         if (loadingAnimSet.isRunning)
             loadingAnimSet.cancel()
 
-        isLoading = true
-
-        arcPaint.color = primaryColor
-
         resetArcLengthAnimator.apply {
-            setFloatValues(currenArcLength, 25F)
+            setFloatValues(currentArcLength, 25F)
             addUpdateListener {
-                currenArcLength = animatedValue as Float
+                currentArcLength = animatedValue as Float
                 postInvalidate()
             }
         }
+
+        isLoading = true
+
+        arcPaint.color = primaryColor
 
         loadingAngleAnimator.apply {
             repeatCount = ValueAnimator.INFINITE
             repeatMode = ValueAnimator.RESTART
             setFloatValues(startAngle, startAngle + 360F)
             addUpdateListener {
-                startAngle = animatedValue as Float
+                startAngle = (animatedValue as Float) % 360
                 postInvalidate()
             }
         }
@@ -247,7 +249,7 @@ class RatingsView
             repeatMode = ValueAnimator.REVERSE
             setFloatValues(25F, 150F)
             addUpdateListener {
-                currenArcLength = animatedValue as Float
+                currentArcLength = animatedValue as Float
                 postInvalidate()
             }
         }
@@ -255,8 +257,9 @@ class RatingsView
         loadingAnimSet.apply {
             duration = 500
             interpolator = LinearInterpolator()
-            play(resetArcLengthAnimator)
-                    .before(loadingAngleAnimator)
+            if (currentArcLength != 0F)
+                play(resetArcLengthAnimator)
+                        .before(loadingAngleAnimator)
             play(loadingAngleAnimator)
                     .with(loadingLengthAnimator)
             start()
@@ -291,9 +294,9 @@ class RatingsView
 
         stopLoadingArcLengthAnimator.apply {
             repeatCount = 0
-            setFloatValues(currenArcLength, 1F)
+            setFloatValues(currentArcLength, 1F)
             addUpdateListener {
-                currenArcLength = animatedValue as Float
+                currentArcLength = animatedValue as Float
                 postInvalidate()
             }
         }
@@ -359,16 +362,38 @@ class RatingsView
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
 
+        // Setup oval
         val topPoint = (width / 2F) - (measuredWidth / 2F)
         val botPoint = (height / 2F) - (measuredHeight / 2F)
+        val loadingOvalOffset = measuredWidth / 4F
         oval.set(topPoint + paddingLeft + marginLeft,
                 botPoint + paddingTop + marginTop,
                 topPoint + measuredWidth - paddingRight - marginRight,
                 botPoint + measuredHeight - paddingBottom - marginBottom)
+        loadingOval.set(
+                oval.left + loadingOvalOffset,
+                oval.top + loadingOvalOffset,
+                oval.right - loadingOvalOffset,
+                oval.bottom - loadingOvalOffset
+        )
 
         arcPaint.apply {
             isAntiAlias = true
-            color = arcColor
+            // Apply first color from colorRangeMap to avoid starting color from default one
+            color = if (colorRangeMap.isNotEmpty())
+                colorRangeMap[0]!!
+            else
+                arcColor
+            strokeWidth = getStandardArcWidth() * arcWidthScale
+            strokeCap = Paint.Cap.ROUND
+            style = Paint.Style.STROKE
+        }
+
+
+        loadingPaint.apply {
+            isAntiAlias = true
+//            color = ColorUtils.blendARGB(arcColor, Color.BLACK, 0.2F)
+            color = textColor
             strokeWidth = getStandardArcWidth() * arcWidthScale
             strokeCap = Paint.Cap.ROUND
             style = Paint.Style.STROKE
@@ -387,6 +412,9 @@ class RatingsView
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             getTextBounds(rating.toString(), 0, rating.toString().length, textBounds)
         }
+
+        if (isLoading)
+            startLoadingAnimation()
     }
 
     private var startAngle = 270F
@@ -396,7 +424,8 @@ class RatingsView
 
         with(canvas) {
             drawArc(oval, 0F, 360F, true, bgPaint)
-            drawArc(oval, startAngle, -currenArcLength, false, arcPaint)
+            drawArc(oval, startAngle, -currentArcLength, false, arcPaint)
+
             if (!isLoading)
                 drawText(
                         animatedRating.toString(),
@@ -404,8 +433,11 @@ class RatingsView
                         oval.centerY() + textBounds.height() / 2F,
                         textPaint
                 )
-            else
+            else {
                 animatedRating = 0
+                drawArc(loadingOval, startAngle + 180, currentArcLength - 1, false, loadingPaint)
+
+            }
         }
     }
 
@@ -433,6 +465,9 @@ class RatingsView
         viewState.textColor = textColor
         viewState.textScale = textScale
         viewState.thresholdColorsMap = colorRangeMap
+        viewState.isLoading = if (isLoading) 1 else 0
+        viewState.startAngle = startAngle
+        viewState.currentArcLength = currentArcLength
         return viewState
     }
 
@@ -447,10 +482,9 @@ class RatingsView
         textColor = savedState.textColor
         textScale = savedState.textScale
         colorRangeMap = savedState.thresholdColorsMap as TreeMap<Int, Int>
-
-        // Apply first color from colorRangeMap to avoid starting color from default one
-        if(colorRangeMap.isNotEmpty())
-            arcColor = colorRangeMap[0]!!
+        isLoading = savedState.isLoading == 1
+        startAngle = savedState.startAngle
+        currentArcLength = savedState.currentArcLength
 
         requestLayout()
     }
@@ -464,9 +498,9 @@ class RatingsView
             primaryAnimatorSet.cancel()
 
         arcAnimator.apply {
-            setFloatValues(currenArcLength, 360 * rating * 0.01F)
+            setFloatValues(currentArcLength, 360 * rating * 0.01F)
             addUpdateListener {
-                currenArcLength = animatedValue as Float
+                currentArcLength = animatedValue as Float
                 postInvalidate()
             }
         }
@@ -542,6 +576,7 @@ class RatingsView
             setEvaluator(ArgbEvaluator())
             addUpdateListener {
                 textPaint.color = animatedValue as Int
+                loadingPaint.color = textPaint.color
                 postInvalidate()
             }
             start()
