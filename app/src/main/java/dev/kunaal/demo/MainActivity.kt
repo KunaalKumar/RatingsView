@@ -41,8 +41,8 @@ class MainActivity : AppCompatActivity() {
         setupTextColorButton()
 
         setupRatingViews()
-        setupTextScaleSeekBar()
-        setupArcWidthSeekbar()
+        setupTextScaleViews()
+        setupArcWidthViews()
 
         ratings_view.setOnClickListener {
             ratings_view.toggleLoadingAnimation()
@@ -73,7 +73,17 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    private fun setupTextScaleSeekBar() {
+    private fun setupTextScaleViews() {
+        text_scale_picker.setOnKeyListener { v, keyCode, event ->
+            if (keyCode == KeyEvent.KEYCODE_ENTER) {
+                val num = text_scale_picker.text.toString().toFloat()
+                text_scale_seekbar.progress = (max(0F, min(2F, num)) * 50).toInt()
+                text_scale_picker.text = SpannableStringBuilder(num.toString())
+                ratings_view.textScale = num
+            }
+            false
+        }
+
         text_scale_seekbar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {}
 
@@ -85,7 +95,17 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    private fun setupArcWidthSeekbar() {
+    private fun setupArcWidthViews() {
+        arc_width_picker.setOnKeyListener { v, keyCode, event ->
+            if (keyCode == KeyEvent.KEYCODE_ENTER) {
+                val num = arc_width_picker.text.toString().toFloat()
+                arc_width_seekbar.progress = (max(0F, min(2F, num)) * 50).toInt()
+                arc_width_picker.text = SpannableStringBuilder(num.toString())
+                ratings_view.setArcWidthScale(num)
+            }
+            false
+        }
+
         arc_width_seekbar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {}
 

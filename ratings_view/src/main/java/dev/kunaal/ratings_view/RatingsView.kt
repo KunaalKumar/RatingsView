@@ -35,6 +35,7 @@ class RatingsView
     : View(context, attrs, defStyleAttr) {
 
     private var primaryColor: Int = 0
+    private var accentColor: Int = 0
 
     private var animatedRating = 0
     private var currentArcLength = 0F
@@ -230,9 +231,14 @@ class RatingsView
             }
         }
 
-        isLoading = true
+        if (primaryAnimatorSet.isRunning) {
+            primaryAnimatorSet.cancel()
+            primaryAnimatorSet.removeAllListeners()
+        }
 
-        arcPaint.color = primaryColor
+        changeArcColor(arcColor)
+
+        isLoading = true
 
         loadingAngleAnimator.apply {
             repeatCount = ValueAnimator.INFINITE
@@ -322,8 +328,11 @@ class RatingsView
         isSaveEnabled = true
 
         val primValue = TypedValue()
+        val secValue = TypedValue()
         context.theme.resolveAttribute(R.attr.colorPrimary, primValue, true)
+        context.theme.resolveAttribute(R.attr.colorAccent, secValue, true)
         primaryColor = primValue.data
+        accentColor = secValue.data
 
         val bgValue = TypedValue()
         context.theme.resolveAttribute(R.attr.background, primValue, true)
@@ -333,7 +342,7 @@ class RatingsView
             val array = context.obtainStyledAttributes(attrs, R.styleable.RatingsView, 0, 0)
             arcColor = array.getColor(R.styleable.RatingsView_arcColor, primaryColor)
             bgColor = array.getColor(R.styleable.RatingsView_bgColor, defaultBgColor)
-            textColor = array.getColor(R.styleable.RatingsView_textColor, primaryColor)
+            textColor = array.getColor(R.styleable.RatingsView_textColor, accentColor)
             doOnNextLayout {
                 if(textScale == 0F)
                     changeRatingTextSize(
@@ -434,6 +443,7 @@ class RatingsView
                         textPaint
                 )
             else {
+                // Draw loading arc
                 animatedRating = 0
                 drawArc(loadingOval, startAngle + 180, currentArcLength - 1, false, loadingPaint)
 
@@ -534,8 +544,6 @@ class RatingsView
      * @param toColor color to animate to
      */
     private fun changeArcColor(toColor: Int) {
-        if (isLoading)
-            return
         if (arcColorAnimator.isRunning)
             arcColorAnimator.cancel()
 

@@ -11,6 +11,7 @@
         android:id="@+id/ratings_view"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        app:textColor="@color/colorAccent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toTopOf="@id/scroll_view"
         app:layout_constraintEnd_toEndOf="parent"
@@ -43,7 +44,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_margin="8dp"
-                android:hint="Pick progress"
+                android:hint="Change rating"
                 android:inputType="number"
                 android:padding="8dp"
                 app:layout_constraintBottom_toTopOf="@id/text_scale_text"
@@ -69,21 +70,35 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="8dp"
                 android:padding="8dp"
-                android:text="Text Size"
+                android:text="Text Scale"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/rating_picker" />
+
+            <EditText
+                android:id="@+id/text_scale_picker"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:hint="Change text scale"
+                android:inputType="numberDecimal"
+                android:padding="8dp"
+                app:layout_constraintBottom_toTopOf="@id/arc_width_text"
+                app:layout_constraintEnd_toStartOf="@id/text_scale_seekbar"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/text_scale_text" />
 
             <androidx.appcompat.widget.AppCompatSeekBar
                 android:id="@+id/text_scale_seekbar"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_margin="8dp"
-                android:padding="16dp"
+                android:padding="8dp"
                 android:progress="50"
-                app:layout_constraintBottom_toTopOf="@id/arc_width_seekbar"
+                app:layout_constraintBottom_toBottomOf="@id/text_scale_picker"
+                app:layout_constraintStart_toEndOf="@id/text_scale_picker"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/text_scale_text" />
+                app:layout_constraintTop_toTopOf="@id/text_scale_picker"
+                tools:layout_editor_absoluteY="176dp" />
 
             <TextView
                 android:id="@+id/arc_width_text"
@@ -97,6 +112,18 @@
                 app:layout_constraintStart_toStartOf="@id/rating_picker"
                 app:layout_constraintTop_toBottomOf="@id/text_scale_seekbar" />
 
+            <EditText
+                android:id="@+id/arc_width_picker"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:hint="Change arc width"
+                android:inputType="numberDecimal"
+                android:padding="8dp"
+                app:layout_constraintBottom_toTopOf="@id/clear_bg_button"
+                app:layout_constraintEnd_toStartOf="@id/arc_width_seekbar"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/arc_width_text" />
 
             <androidx.appcompat.widget.AppCompatSeekBar
                 android:id="@+id/arc_width_seekbar"
@@ -105,25 +132,27 @@
                 android:layout_margin="8dp"
                 android:padding="16dp"
                 android:progress="50"
-                app:layout_constraintBottom_toTopOf="@id/bg_button"
+                app:layout_constraintBottom_toBottomOf="@id/arc_width_picker"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/text_scale_seekbar" />
+                app:layout_constraintStart_toEndOf="@id/arc_width_picker"
+                app:layout_constraintTop_toTopOf="@id/arc_width_picker" />
 
             <Button
                 android:id="@+id/clear_bg_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="clear background"
+                android:layout_margin="8dp"
                 app:layout_constraintEnd_toStartOf="@id/bg_button"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/arc_width_seekbar" />
+                app:layout_constraintTop_toBottomOf="@id/arc_width_picker" />
 
             <Button
                 android:id="@+id/bg_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Change Background Color"
+                android:layout_margin="8dp"
                 app:layout_constraintBottom_toBottomOf="@id/clear_bg_button"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@id/clear_bg_button"
