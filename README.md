@@ -5,7 +5,7 @@ An android custom view to show ratings
 [ ![Download](https://api.bintray.com/packages/kunaalkumar/ratings-view/dev.kunaal:ratings_view/images/download.svg?version=0.0.8) ](https://bintray.com/kunaalkumar/ratings-view/dev.kunaal:ratings_view/0.0.8/link)
 [![Generic badge](https://img.shields.io/badge/Documentation-important.svg)](https://kunaalkumar.github.io/RatingsView/ratings_view/dev.kunaal.ratings_view/-ratings-view/index.html)
 
-<img align="right" src="static/preview.gif" alt="preview" width="30%" hspace="5%" />
+<img align="right" src="static/demo.gif" alt="demo" width="30%" hspace="5%" />
 
 ## Dependency
 Add this to your module `build.gradle`:
